@@ -1,13 +1,19 @@
 import torch
 import numpy as np
-from transformers import AutoTokenizer
+from transformers import AutoTokenizer, AutoModelForCausalLM
 from lm_eval.models.huggingface import HFLM
-from llama_my import LlamaMyModel
 import torch.nn.functional as F
+import os
+import sys
+
+# Ensure repository root is on sys.path for absolute imports
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+from llama_backend.llama_my import LlamaMyModel
 
 # optional import for embedding helper
 try:
-    from .llama_backend.custom.plain_script.plain_script import input_embedding, rmsnorm, apply_rope, ffn_SwiGLU
+    from llama_backend.custom.plain_script import input_embedding, rmsnorm, apply_rope, ffn_SwiGLU
 except Exception:
     input_embedding = None
     rmsnorm = None

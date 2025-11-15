@@ -1,34 +1,31 @@
 ###############################
-# Core deep learning stack
+# Core deep learning stack (Verified by tinyllama-env)
 ###############################
-# NOTE: Install CUDA-enabled PyTorch wheels. See install notes below.
-# Use Torch 2.3.x to align with Triton 2.3.x (needed by bitsandbytes)
-torch==2.3.1
-torchvision==0.18.1
-torchaudio==2.3.1
+torch==2.8.0
+torchvision==0.23.0 # 更新到與 torch 2.8.0 兼容的最新版本
+torchaudio==2.8.0
 
 ###############################
-# Transformers ecosystem
+# Transformers ecosystem (Verified by tinyllama-env)
 ###############################
-transformers==4.44.2
-accelerate==0.34.2
+transformers==4.56.2
+accelerate==1.10.1
 einops==0.7.0
 
 ###############################
-# Quantization / Triton kernels
+# Quantization / Triton kernels (Verified by tinyllama-env)
 ###############################
-# Fixes import error: ModuleNotFoundError: 'triton.ops' and ensures GPU support
-# Triton must match PyTorch major/minor expectations
-triton==2.3.1
-bitsandbytes==0.43.3
+# Triton 3.4.0 已與 torch 2.8.0 驗證兼容
+triton==3.4.0 
+bitsandbytes==0.43.3 # 使用您原先計劃的最新版
 
 ###############################
 # Tokenization, data, metrics
 ###############################
-tokenizers>=0.15.2
+tokenizers==0.22.1
 sentencepiece==0.1.99
 datasets>=2.19.0
-evaluate==0.4.2
+evaluate==0.4.6
 pandas
 pyarrow
 scikit-learn>=1.5.0
@@ -36,17 +33,17 @@ zstd
 numpy
 
 ###############################
-# Finetuning
+# Finetuning (Verified by tinyllama-env)
 ###############################
-peft==0.12.0
+peft==0.17.1
 
 ###############################
 # Logging / utilities
 ###############################
-wandb==0.17.9
+wandb==0.17.9 
 lightning==2.1.2
 lightning[app]
 jsonargparse[signatures]  # CLI
 
-# Optional / references
-# git+https://github.com/EleutherAI/lm-evaluation-harness.git@master  # eval
+# Optional / references (使用已驗證的 lm-eval 版本，或如果使用 git source，則應使用 master)
+# git+https://github.com/EleutherAI/lm-evaluation-harness.git@master
