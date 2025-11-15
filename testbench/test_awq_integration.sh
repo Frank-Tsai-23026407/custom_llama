@@ -12,8 +12,8 @@ echo "=========================================="
 
 # Test one mix-precision and one fix-precision model
 TEST_MODELS=(
-  "model/TinyLlama_1.1v-awq-quantized-mix-precision-b128-m2"
-  "model/TinyLlama_1.1v-awq-quantized-fix-precision-b128-m2"
+  "model/tinyllama/TinyLlmam_1.1v-awq-quantized-mix-precision-b128-m2"
+  "model/tinyllama/TinyLlmam_1.1v-awq-quantized-fix-precision-b128-m2"
 )
 
 for MPATH in "${TEST_MODELS[@]}"; do

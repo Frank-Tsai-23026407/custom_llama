@@ -101,7 +101,7 @@ def main():
         apply_bfp = False
     elif args.awq:
         print("Using pre-quantized AWQ model.")
-        model_path = "model/TinyLlama_1.1v-awq-quantized"
+        model_path = "model/tinyllama/TinyLlmam_1.1v-awq-quantized"
         # When using a pre-quantized model, we should not apply BFP on top.
         apply_bfp = False
     elif apply_bfp:

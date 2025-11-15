@@ -48,7 +48,7 @@
 | 檔案 | 用途 | 狀態 | 建議 |
 |------|------|------|------|
 | `tinyllama_gt.py` | Ground truth 測試？ | ❓ 不明 | **需檢查內容** |
-| `test_precision_policy.py` | 測試 PrecisionPolicy 類別 | ✅ 單元測試 | **保留**（確保 precision_policy.py 正確性） |
+| `test_precision_policy.py` | 測試 PrecisionPolicy 類別和 backend 比較 | ✅ 單元測試（已驗證） | **保留**（確保 precision_policy.py 正確性，驗證 HF/clone/custom backend 一致性） |
 
 ---
 

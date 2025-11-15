@@ -108,14 +108,14 @@ echo "AWQ: Mix-Precision b128 m2-m5 and Fix-Precision b128 m2-m5 (HF backend)"
 echo "================================================================"
 
 AWQ_MODELS=(
-    "model/TinyLlama_1.1v-awq-quantized-mix-precision-b32-m2"
-    "model/TinyLlama_1.1v-awq-quantized-mix-precision-b32-m3"
-    "model/TinyLlama_1.1v-awq-quantized-mix-precision-b32-m4"
-    "model/TinyLlama_1.1v-awq-quantized-mix-precision-b32-m5"
-    "model/TinyLlama_1.1v-awq-quantized-fix-precision-b32-m2"
-    "model/TinyLlama_1.1v-awq-quantized-fix-precision-b32-m3"
-    "model/TinyLlama_1.1v-awq-quantized-fix-precision-b32-m4"
-    "model/TinyLlama_1.1v-awq-quantized-fix-precision-b32-m5"
+    "model/tinyllama/TinyLlmam_1.1v-awq-quantized-mix-precision-b32-m2"
+    "model/tinyllama/TinyLlmam_1.1v-awq-quantized-mix-precision-b32-m3"
+    "model/tinyllama/TinyLlmam_1.1v-awq-quantized-mix-precision-b32-m4"
+    "model/tinyllama/TinyLlmam_1.1v-awq-quantized-mix-precision-b32-m5"
+    "model/tinyllama/TinyLlmam_1.1v-awq-quantized-fix-precision-b32-m2"
+    "model/tinyllama/TinyLlmam_1.1v-awq-quantized-fix-precision-b32-m3"
+    "model/tinyllama/TinyLlmam_1.1v-awq-quantized-fix-precision-b32-m4"
+    "model/tinyllama/TinyLlmam_1.1v-awq-quantized-fix-precision-b32-m5"
 )
 
 for MPATH in "${AWQ_MODELS[@]}"; do

@@ -1,30 +1,52 @@
-torch>=2.1.0dev
+###############################
+# Core deep learning stack
+###############################
+# NOTE: Install CUDA-enabled PyTorch wheels. See install notes below.
+# Use Torch 2.3.x to align with Triton 2.3.x (needed by bitsandbytes)
+torch==2.3.1
+torchvision==0.18.1
+torchaudio==2.3.1
+
+###############################
+# Transformers ecosystem
+###############################
+transformers==4.44.2
+accelerate==0.34.2
+einops==0.7.0
+
+###############################
+# Quantization / Triton kernels
+###############################
+# Fixes import error: ModuleNotFoundError: 'triton.ops' and ensures GPU support
+# Triton must match PyTorch major/minor expectations
+triton==2.3.1
+bitsandbytes==0.43.3
+
+###############################
+# Tokenization, data, metrics
+###############################
+tokenizers>=0.15.2
+sentencepiece==0.1.99
+datasets>=2.19.0
+evaluate==0.4.2
+pandas
+pyarrow
+scikit-learn>=1.5.0
+zstd
+numpy
+
+###############################
+# Finetuning
+###############################
+peft==0.12.0
+
+###############################
+# Logging / utilities
+###############################
+wandb==0.17.9
 lightning==2.1.2
 lightning[app]
 jsonargparse[signatures]  # CLI
-pandas
-pyarrow
-tokenizers
-sentencepiece
-wandb
-zstd
 
-# for finetuning
-bitsandbytes==0.40.0
-transformers==4.31.0
-peft==0.4.0
-accelerate==0.21.0
-einops==0.6.1
-datasets
-evaluate==0.4.0
-scikit-learn==1.2.2
-sentencepiece==0.1.99
-wandb==0.15.3
-# other optional dependencies are
-# sentencepiece  # pythia, falcon, redpajama
-# tokenizers  #  llama-based models
-# bitsandbytes>=0.41.1  # quantize/bnb.py
-# scipy  # TODO: remove when https://github.com/TimDettmers/bitsandbytes/pull/525 is released
-# datasets  # quantize/gptq.py
-# zstandard  # scripts/prepare_redpajama.py
+# Optional / references
 # git+https://github.com/EleutherAI/lm-evaluation-harness.git@master  # eval

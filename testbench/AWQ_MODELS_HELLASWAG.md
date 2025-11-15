@@ -8,18 +8,18 @@
 
 ### Mix-Precision AWQ (動態量化)
 ```
-model/TinyLlama_1.1v-awq-quantized-mix-precision-b128-m2  # 2-bit mantissa
-model/TinyLlama_1.1v-awq-quantized-mix-precision-b128-m3  # 3-bit mantissa
-model/TinyLlama_1.1v-awq-quantized-mix-precision-b128-m4  # 4-bit mantissa
-model/TinyLlama_1.1v-awq-quantized-mix-precision-b128-m5  # 5-bit mantissa
+model/tinyllama/TinyLlama_1.1v-awq-quantized-mix-precision-b128-m2  # 2-bit mantissa
+model/tinyllama/TinyLlama_1.1v-awq-quantized-mix-precision-b128-m3  # 3-bit mantissa
+model/tinyllama/TinyLlama_1.1v-awq-quantized-mix-precision-b128-m4  # 4-bit mantissa
+model/tinyllama/TinyLlama_1.1v-awq-quantized-mix-precision-b128-m5  # 5-bit mantissa
 ```
 
 ### Fix-Precision AWQ (靜態量化)
 ```
-model/TinyLlama_1.1v-awq-quantized-fix-precision-b128-m2   # 2-bit mantissa
-model/TinyLlama_1.1v-awq-quantized-fix-precision-b128-m3   # 3-bit mantissa
-model/TinyLlama_1.1v-awq-quantized-fix-precision-b128-m4   # 4-bit mantissa
-model/TinyLlama_1.1v-awq-quantized-fix-precision-b128-m5   # 5-bit mantissa
+model/tinyllama/TinyLlama_1.1v-awq-quantized-fix-precision-b128-m2   # 2-bit mantissa
+model/tinyllama/TinyLlama_1.1v-awq-quantized-fix-precision-b128-m3   # 3-bit mantissa
+model/tinyllama/TinyLlama_1.1v-awq-quantized-fix-precision-b128-m4   # 4-bit mantissa
+model/tinyllama/TinyLlama_1.1v-awq-quantized-fix-precision-b128-m5   # 5-bit mantissa
 ```
 
 **參數說明**:
@@ -64,12 +64,12 @@ cd /home/frank23026407/TinyLlama
 # 範例：評估 mix-precision b128 m4
 conda run -n tinyllama-env python awq/tinyllama_my_bfp_hellaswag.py \
   --backend huggingface \
-  --model_path model/TinyLlama_1.1v-awq-quantized-mix-precision-b128-m4
+  --model_path model/tinyllama/TinyLlama_1.1v-awq-quantized-mix-precision-b128-m4
 
 # 快速測試（100 樣本）
 conda run -n tinyllama-env python awq/tinyllama_my_bfp_hellaswag.py \
   --backend huggingface \
-  --model_path model/TinyLlama_1.1v-awq-quantized-fix-precision-b128-m3 \
+  --model_path model/tinyllama/TinyLlama_1.1v-awq-quantized-fix-precision-b128-m3 \
   --max_samples 100
 ```
 
@@ -224,7 +224,7 @@ python awq/analyze_hellaswag_results.py awq/log/precision_sweep
 
 ```bash
 # 檢查模型是否存在
-ls -lh model/TinyLlama_1.1v-awq-quantized-*
+ls -lh model/tinyllama/TinyLlama_1.1v-awq-quantized-*
 
 # 確保使用絕對路徑或從專案根目錄執行
 cd /home/frank23026407/TinyLlama
@@ -243,7 +243,7 @@ conda run -n tinyllama-env python awq/tinyllama_my_bfp_hellaswag.py ...
 # 使用 --max_samples 限制資料集大小
 python awq/tinyllama_my_bfp_hellaswag.py \
   --backend huggingface \
-  --model_path model/TinyLlama_1.1v-awq-quantized-mix-precision-b128-m4 \
+  --model_path model/tinyllama/TinyLlama_1.1v-awq-quantized-mix-precision-b128-m4 \
   --max_samples 1000  # 只評估 1000 個樣本
 ```
 

@@ -143,7 +143,30 @@ testbench/
 ## Top-level docs
 
 - `SIMPLE_EVAL.md`: Simple evaluation guide.
-- `requirements.txt`: Python dependencies.
+- `requirements.txt`: Python dependencies (PyTorch 2.3.1 + CUDA 12.1, Triton 2.3.1, bitsandbytes 0.43.3).
+- `README.md`: Main project documentation with installation and usage instructions.
+
+—
+
+## Environment Setup Notes
+
+**Critical dependencies**:
+- PyTorch 2.3.1 with CUDA 12.1 (not 2.4.x - Triton version conflict)
+- Triton 2.3.1 (required by bitsandbytes 0.43.3)
+- bitsandbytes 0.43.3 (GPU-enabled version with proper CUDA runtime)
+
+**Installation**:
+```bash
+# Recommended: Use PyTorch CUDA wheels
+pip install --extra-index-url https://download.pytorch.org/whl/cu121 \
+  torch==2.3.1 torchvision==0.18.1 torchaudio==2.3.1
+pip install -r requirements.txt
+```
+
+**Troubleshooting**: See `llama_backend/USAGE.md` for common issues like:
+- `ModuleNotFoundError: No module named 'triton.ops'`
+- `libcudart.so not found`
+- CUDA version mismatches
 
 —
 

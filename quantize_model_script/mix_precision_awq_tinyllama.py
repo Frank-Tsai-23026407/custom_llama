@@ -105,7 +105,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from quantize_model_script.activation_aware_weight_quantization import get_weight_scaling_factor
 
 if __name__ == "__main__":
-    model_path = "/home/frank23026407/TinyLlama/model/TinyLlama_1.1v"
+    model_path = "/home/frank23026407/TinyLlama/model/tinyllama/TinyLlmam_1.1v"
     dataset_name = "Salesforce/wikitext"
     dataset_config = "wikitext-103-raw-v1"
     num_samples = 128

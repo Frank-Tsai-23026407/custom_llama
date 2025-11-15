@@ -42,7 +42,7 @@ do
 
     # Set common parameters for model paths
     G_SIZE=128
-    BASE_MODEL_PATH="$PROJECT_ROOT/model/TinyLlama_1.1v"
+    BASE_MODEL_PATH="$PROJECT_ROOT/model/tinyllama/TinyLlmam_1.1v"
 
     # Run evaluation for different mantissa bits
     for M_BIT in 2 3 4 5

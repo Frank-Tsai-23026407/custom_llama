@@ -5,13 +5,13 @@ from pathlib import Path
 # Add parent directory to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from .llama_backend.custom.plain_script.plain_script import *
+from .custom.plain_script import *
 from llama_backend.precision_policy import resolve_policy, PrecisionPolicy
 from llama_backend.clone.hf_rope import HFRotaryEmbedding
 from llama_backend.clone.clone_backend import clone_decoder_layer, clone_rmsnorm
 import argparse
-from block_quantization.block_quantization import block_floating_point_quantize
-from .llama_backend.utils import *
+from quantize_model_script.block_quantization import block_floating_point_quantize
+from .utils import *
 from llama_backend.clone.hf_clone import clone_forward_all
 
 class LlamaMyModel:

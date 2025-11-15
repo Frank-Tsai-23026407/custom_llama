@@ -74,7 +74,7 @@ def quantize_model(model_path, dataset_name, dataset_config, num_samples, block_
     print(f"Quantized model saved to: {output_dir}")
 
 if __name__ == '__main__':
-    MODEL_PATH = "/home/frank23026407/TinyLlama/model/TinyLlama_1.1v"
+    MODEL_PATH = "/home/frank23026407/TinyLlama/model/tinyllama/TinyLlmam_1.1v"
     DATASET_NAME = "Salesforce/wikitext"
     DATASET_CONFIG = "wikitext-103-raw-v1"
     NUM_SAMPLES = 128

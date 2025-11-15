@@ -39,7 +39,31 @@ cd custom_llama
 Ensure you have a Python environment with PyTorch `2.1.0` or newer. Then, install the required packages:
 
 ```bash
+conda create -n llama-env python=3.11
+conda activate llama-env
 pip install -r requirements.txt
+```
+
+**Note**: This project requires:
+- PyTorch 2.3.1 with CUDA 12.1
+- Triton 2.3.1 (compatible with PyTorch 2.3.x)
+- bitsandbytes 0.43.3 (with GPU support)
+
+#### Verify Installation
+
+```bash
+python -c "import torch, bitsandbytes as bnb, triton; print(f'Torch: {torch.__version__}, CUDA: {torch.version.cuda}, Available: {torch.cuda.is_available()}'); print(f'bitsandbytes: {bnb.__version__}'); print(f'Triton: {triton.__version__}')"
+```
+
+### 3. Install lm-evaluation-harness for Ground Truth
+
+To compare your model's performance against established benchmarks, you need to install `lm-evaluation-harness`. This is used as the ground truth for evaluations.
+
+```bash
+git clone https://github.com/EleutherAI/lm-evaluation-harness.git
+cd lm-evaluation-harness
+pip install -e .
+cd ..
 ```
 
 ## Usage
@@ -60,7 +84,7 @@ This will:
 1. Load the base `TinyLlama_1.1v` model.
 2. Use the WikiText dataset for calibration.
 3. Apply AWQ with a block size of 64 and mantissa bits from 2 to 5.
-4. Save each quantized model to a new directory under `model/`, such as `model/TinyLlama_1.1v-awq-quantized-fix-precision-b64-m2/`.
+4. Save each quantized model to a new directory under `model/`, such as `model/tinyllama/TinyLlmam_1.1v-awq-quantized-fix-precision-b64-m2/`.
 
 ### 2. Model Evaluation
 
@@ -68,7 +92,7 @@ The `testbench/` directory contains scripts to evaluate models on various benchm
 
 ```bash
 # Define the path to your quantized model
-MODEL_CHECKPOINT="model/TinyLlama_1.1v-awq-quantized-fix-precision-b64-m2"
+MODEL_CHECKPOINT="model/tinyllama/TinyLlmam_1.1v-awq-quantized-fix-precision-b64-m2"
 
 # Run evaluation using the custom backend
 python testbench/tinyllama_my_bfp_hellaswag.py \

@@ -3,12 +3,74 @@
 本文檔說明如何使用 `LlamaMyModel` 進行推理，包括精度控制、量化方法等高級功能。
 
 ## 目錄
+- [環境要求與安裝](#環境要求與安裝)
 - [基本使用](#基本使用)
 - [Backend 選擇](#backend-選擇)
 - [精度控制 (Precision Control)](#精度控制-precision-control)
 - [Block Floating Point (BFP) 量化](#block-floating-point-bfp-量化)
 - [Activation-Aware Weight Quantization (AWQ)](#activation-aware-weight-quantization-awq)
+- [常見問題排除](#常見問題排除)
 - [最佳實踐建議](#最佳實踐建議)
+
+---
+
+## 環境要求與安裝
+
+### 必要套件版本
+
+本專案需要以下核心套件：
+
+- **PyTorch**: 2.3.1 (含 CUDA 12.1)
+- **Triton**: 2.3.1
+- **bitsandbytes**: 0.43.3
+- **transformers**: 4.44.2
+- **accelerate**: 0.34.2
+
+### 安裝步驟
+
+#### 方法 1: 使用 pip 安裝 CUDA wheels（推薦）
+
+```bash
+# 移除可能衝突的套件
+pip uninstall -y torch torchvision torchaudio triton bitsandbytes
+
+# 安裝 PyTorch CUDA 12.1 版本
+pip install --upgrade pip
+pip install --extra-index-url https://download.pytorch.org/whl/cu121 \
+  torch==2.3.1 torchvision==0.18.1 torchaudio==2.3.1
+
+# 安裝其他相依套件
+pip install -r requirements.txt
+```
+
+#### 方法 2: 使用 conda（替代方案）
+
+```bash
+# 透過 conda 安裝 PyTorch（包含 CUDA runtime）
+conda install -y pytorch==2.3.1 pytorch-cuda=12.1 -c pytorch -c nvidia
+
+# 移除可能衝突的套件
+pip uninstall -y triton bitsandbytes
+
+# 安裝其他相依套件
+pip install -r requirements.txt
+```
+
+### 驗證安裝
+
+```bash
+python -c "import torch, bitsandbytes as bnb, triton; \
+print(f'Torch: {torch.__version__}, CUDA: {torch.version.cuda}, Available: {torch.cuda.is_available()}'); \
+print(f'bitsandbytes: {bnb.__version__}'); \
+print(f'Triton: {triton.__version__}')"
+```
+
+預期輸出：
+```
+Torch: 2.3.1, CUDA: 12.1, Available: True
+bitsandbytes: 0.43.3
+Triton: 2.3.1
+```
 
 ---
 
@@ -299,13 +361,13 @@ AWQ 根據 activation 重要性選擇性量化權重，在 4-bit 量化下保持
 # 下載或生成 AWQ 量化模型
 python quantize_model_script/quantize_awq.py \
     --model_path TinyLlama/TinyLlama-1.1B-Chat-v1.0 \
-    --output_dir model/TinyLlama_1.1v-awq-quantized-fix-precision-b128-m4 \
+    --output_dir model/tinyllama/TinyLlama_1.1v-awq-quantized-fix-precision-b128-m4 \
     --block_size 128 \
     --mantissa_bits 4
 
 # 使用量化模型
 python awq/tinyllama_my_bfp_hellaswag.py \
-    --model_path model/TinyLlama_1.1v-awq-quantized-fix-precision-b128-m4
+    --model_path model/tinyllama/TinyLlama_1.1v-awq-quantized-fix-precision-b128-m4
 ```
 
 ### 動態 AWQ (運行時量化)
@@ -400,7 +462,7 @@ model = LlamaMyModel(
 
 # 情境 1: 需要最佳壓縮/準確度權衡
 # → 使用 AWQ (4-bit, 靜態量化)
-model_path = "model/TinyLlama_1.1v-awq-quantized-fix-precision-b128-m4"
+model_path = "model/tinyllama/TinyLlama_1.1v-awq-quantized-fix-precision-b128-m4"
 
 # 情境 2: 快速實驗，不想預處理
 # → 使用 BFP (b=16, m=4 或 m=5)
@@ -485,6 +547,111 @@ A: 運行掃描腳本：
 sh awq/run_block_floating_point.sh
 ```
 查看 `awq/log/bft_*.log` 比較不同配置的準確度。
+
+---
+
+## 常見問題排除
+
+### 1. ModuleNotFoundError: No module named 'triton.ops'
+
+**問題描述**：執行時出現 `ModuleNotFoundError: No module named 'triton.ops'`
+
+**原因**：
+- Triton 版本不相容（PyTorch 2.4.1 需要 Triton 3.0.0，但 bitsandbytes 0.43.3 需要 Triton 2.3.x）
+- 舊版 Triton 未完整解除安裝
+
+**解決方法**：
+```bash
+# 完整移除衝突套件
+pip uninstall -y torch torchvision torchaudio triton bitsandbytes
+
+# 重新安裝相容版本
+pip install --extra-index-url https://download.pytorch.org/whl/cu121 \
+  torch==2.3.1 torchvision==0.18.1 torchaudio==2.3.1
+pip install -r requirements.txt
+```
+
+### 2. bitsandbytes: libcudart.so not found
+
+**問題描述**：
+```
+WARNING: No libcudart.so found! Install CUDA or the cudatoolkit package
+The installed version of bitsandbytes was compiled without GPU support
+```
+
+**原因**：缺少 CUDA runtime library
+
+**解決方法 A - 使用 conda（推薦）**：
+```bash
+conda install -y pytorch==2.3.1 pytorch-cuda=12.1 -c pytorch -c nvidia
+pip uninstall -y triton bitsandbytes
+pip install -r requirements.txt
+```
+
+**解決方法 B - 確認 CUDA 環境變數**：
+```bash
+# 檢查系統 CUDA
+which nvcc
+nvidia-smi
+
+# 設定 LD_LIBRARY_PATH（若 CUDA 已安裝但找不到）
+export LD_LIBRARY_PATH=/usr/local/cuda-12.1/lib64:$LD_LIBRARY_PATH
+```
+
+### 3. CUDA version mismatch
+
+**問題描述**：PyTorch 偵測到的 CUDA 版本與系統不符
+
+**解決方法**：
+```bash
+# 檢查系統 CUDA 版本
+nvcc --version
+nvidia-smi  # 查看驅動支援的最高 CUDA 版本
+
+# 重新安裝對應版本的 PyTorch wheels
+# 例如：CUDA 11.8
+pip install --extra-index-url https://download.pytorch.org/whl/cu118 \
+  torch==2.3.1 torchvision==0.18.1 torchaudio==2.3.1
+```
+
+### 4. 精度測試失敗
+
+**問題描述**：執行 `debug/test_precision_policy.py` 時輸出差異過大
+
+**檢查步驟**：
+```bash
+# 1. 驗證環境
+python -c "import torch; print(torch.cuda.is_available(), torch.version.cuda)"
+
+# 2. 執行精度測試
+python debug/test_precision_policy.py
+
+# 3. 檢查預期行為
+# - HF backend parity diff 應該 < 1e-6 (幾乎完全相同)
+# - Clone backend diff 應該 < 0.03 (高度對齊)
+# - match_hf policy 應該減少與 HF 的差異
+```
+
+### 5. OOM (Out of Memory)
+
+**問題描述**：GPU 記憶體不足
+
+**解決方法**：
+```python
+# 使用較低精度
+model = LlamaMyModel(
+    model_name="TinyLlama/TinyLlama-1.1B-Chat-v1.0",
+    dtype=torch.bfloat16,  # 或 torch.float16
+    precision_policy="bf16"  # 所有計算都用 bf16
+)
+
+# 或使用量化模型
+model = LlamaMyModel(
+    model_name="path/to/quantized-model",
+    quantized_weight_method="awq",  # 或 "bfp"
+    device="cuda"
+)
+```
 
 ---
 

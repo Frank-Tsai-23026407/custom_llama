@@ -1,6 +1,6 @@
 """Quick test to verify precision policy works and compare with HF."""
 import torch
-from transformers import AutoTokenizer
+from transformers import AutoTokenizer, AutoModelForCausalLM
 
 import sys
 from pathlib import Path
@@ -9,7 +9,6 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 # customed code
-from lm_eval.models.huggingface import HFLM
 from llama_backend.llama_my import LlamaMyModel
 
 def test_precision_policies():
@@ -22,10 +21,14 @@ def test_precision_policies():
     # Test text
     text = "Hello, how are you?"
     
-    # Load HF reference model
-    print("Loading HF model (bfloat16)...")
-    hflm = HFLM(pretrained=model_path, device=device, dtype="bfloat16")
-    tokenizer = hflm.tokenizer
+    # Load HF reference model without lm-eval
+    print("Loading HF model (bfloat16) via transformers...")
+    tokenizer = AutoTokenizer.from_pretrained(model_path)
+    hf_model = AutoModelForCausalLM.from_pretrained(
+        model_path,
+        torch_dtype=torch.bfloat16,
+    )
+    hf_model = hf_model.to(device)
     
     # Tokenize
     encoding = tokenizer(text, return_tensors="pt", add_special_tokens=False)
@@ -35,7 +38,7 @@ def test_precision_policies():
     
     # HF forward
     with torch.no_grad():
-        hf_out = hflm.model(input_ids=input_ids)
+        hf_out = hf_model(input_ids=input_ids)
         hf_logits = hf_out.logits
     
     print(f"\nHF logits shape: {hf_logits.shape}, dtype: {hf_logits.dtype}")

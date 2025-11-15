@@ -1,5 +1,4 @@
-model/
-input_output/
+model/*
 lm-evaluation-harness/
 
 # Python cache
