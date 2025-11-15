@@ -15,9 +15,9 @@ import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 # my libraries
-from .llama_backend.custom.plain_script import *
-from .llama_backend.utils import *
-from .llama_backend.llama_my import LlamaMyModel
+from llama_backend.custom.plain_script import *
+from llama_backend.utils import *
+from llama_backend.llama_my import LlamaMyModel
 
 
 def preprocess(text):
@@ -42,7 +42,7 @@ def process_docs(dataset: datasets.Dataset) -> datasets.Dataset:
     return dataset.map(_process_doc)
 
 def main():
-    parser = argparse.ArgumentParser(description="Evaluate TinyLlama on HellaSwag with optional BFP quantization.")
+    parser = argparse.ArgumentParser(description="Evaluate a model on HellaSwag with optional BFP quantization.")
     parser.add_argument("--bft", action="store_true", help="Apply Block Floating Point quantization.")
     parser.add_argument("--m_bit", type=int, default=4, help="Mantissa bits for BFP quantization.")
     parser.add_argument("--b_size", type=int, default=16, help="Block size for BFP quantization.")
@@ -114,7 +114,7 @@ def main():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"Using device: {device}")
     dtype = torch.bfloat16
-    tokenizer = AutoTokenizer.from_pretrained("TinyLlama/TinyLlama_v1.1")
+    tokenizer = AutoTokenizer.from_pretrained(model_path)
 
     # Load HellaSwag dataset
     dataset = load_dataset("Rowan/hellaswag", split="validation")

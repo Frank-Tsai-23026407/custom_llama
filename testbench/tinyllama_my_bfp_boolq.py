@@ -15,16 +15,17 @@ import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 # my libraries
-from .llama_backend.custom.plain_script import *
-from .llama_backend.utils import *
-from llama_my import LlamaMyModel
+from llama_backend.custom.plain_script import *
+from llama_backend.utils import *
+from llama_backend.llama_my import LlamaMyModel
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Evaluate TinyLlama on BoolQ with optional BFP quantization.")
+    parser = argparse.ArgumentParser(description="Evaluate a model on BoolQ with optional BFP quantization.")
     parser.add_argument("--bft", action="store_true", help="Apply Block Floating Point quantization.")
     parser.add_argument("--m_bit", type=int, default=4, help="Mantissa bits for BFP quantization.")
     parser.add_argument("--b_size", type=int, default=16, help="Block size for BFP quantization.")
+    parser.add_argument("--model_path", type=str, default="TinyLlama/TinyLlama_v1.1", help="Path or hub ID for the model to evaluate (e.g., model/llama-3.2-1b/Llama-3.2-1B)")
     
     args = parser.parse_args()
 
@@ -40,7 +41,7 @@ def main():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"Using device: {device}")
     dtype = torch.float32 
-    tokenizer = AutoTokenizer.from_pretrained("TinyLlama/TinyLlama_v1.1")
+    tokenizer = AutoTokenizer.from_pretrained(args.model_path)
 
     # Load BoolQ dataset
     dataset = load_dataset("super_glue", "boolq", split="validation")
@@ -63,7 +64,7 @@ def main():
     total_questions = 0
     
     my_model = LlamaMyModel(
-        model_name="TinyLlama/TinyLlama_v1.1",
+        model_name=args.model_path,
         device=device,
         stop_criteria=StopOnTokens(),
         dtype=dtype,
