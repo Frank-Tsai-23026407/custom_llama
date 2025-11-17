@@ -21,6 +21,15 @@ from llama_backend.llama_my import LlamaMyModel
 
 
 def main():
+    """
+    Evaluates a model on the PIQA dataset with optional BFP quantization.
+
+    This function parses command-line arguments to configure the evaluation, including
+    whether to apply Block Floating-Point (BFP) quantization, the mantissa bits, and
+    the block size for BFP. It then loads the specified model and the PIQA
+    dataset, formats the questions, and evaluates the model's performance by
+    calculating the accuracy of its predictions.
+    """
     parser = argparse.ArgumentParser(description="Evaluate a model on PIQA with optional BFP quantization.")
     parser.add_argument("--bft", action="store_true", help="Apply Block Floating Point quantization.")
     parser.add_argument("--m_bit", type=int, default=4, help="Mantissa bits for BFP quantization.")
@@ -53,6 +62,18 @@ def main():
     dataset = load_dataset("piqa", split="validation", cache_dir=cache_dir)
 
     def format_question(example):
+        """
+        Formats a single example from the PIQA dataset.
+
+        This function takes an example from the dataset and extracts the goal as the
+        context, the two solutions as choices, and the correct label.
+
+        Args:
+            example: A single example from the PIQA dataset.
+
+        Returns:
+            dict: A dictionary containing the formatted context, choices, and label.
+        """
         context = example["goal"]
         choices = [example["sol1"], example["sol2"]]
         gold = int(example["label"])

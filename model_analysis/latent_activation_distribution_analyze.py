@@ -15,6 +15,24 @@ example_input = '\n<|user|>:Who is the president of US now?</s>\n<|assistant|>:A
 
 
 def predict_next_token(logits, tokenizer, top_k=5, print_topk=False):
+    """
+    Predicts the next token from a given set of logits.
+
+    This function takes the output logits from a language model, computes the token
+    probabilities using softmax, and identifies the most likely next token. It can also
+    print the top-k predicted tokens and their probabilities.
+
+    Args:
+        logits (torch.Tensor): The output logits from the model, with shape
+            (batch_size, seq_len, vocab_size).
+        tokenizer: The tokenizer used to decode token IDs.
+        top_k (int, optional): The number of top predictions to print. Defaults to 5.
+        print_topk (bool, optional): Whether to print the top-k predictions.
+            Defaults to False.
+
+    Returns:
+        int: The ID of the predicted next token.
+    """
     # logits: (batch_size, seq_len, vocab_size)
     probs = torch.softmax(logits, dim=-1)  # Convert logits to probabilities
     next_token_id = torch.argmax(probs[:, -1, :], dim=-1)  # Get the token ID with the highest probability for the last token
@@ -28,6 +46,14 @@ def predict_next_token(logits, tokenizer, top_k=5, print_topk=False):
     return next_token_id.item()
 
 def main():
+    """
+    Analyzes the latent activation distributions of a language model.
+
+    This function loads a pre-trained language model, performs a forward pass on a sample
+    input, and then analyzes the distribution of latent activations at each layer. It
+    generates and saves plots of the activation distributions, as well as summaries of
+    key metrics like the ratio of max activation to RMS activation.
+    """
     parser = argparse.ArgumentParser(description="Analyze latent activation distributions of a language model.")
     parser.add_argument("--model_path", type=str, default="TinyLlama/TinyLlama-1.1B-Chat-v1.0", help="Path to the model to be analyzed.")
     args = parser.parse_args()

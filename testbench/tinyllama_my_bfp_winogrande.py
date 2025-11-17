@@ -21,6 +21,15 @@ from llama_backend.llama_my import LlamaMyModel
 
 
 def main():
+    """
+    Evaluates a model on the WinoGrande dataset with optional BFP quantization.
+
+    This function parses command-line arguments to configure the evaluation, including
+    whether to apply Block Floating-Point (BFP) quantization, the mantissa bits, and
+    the block size for BFP. It then loads the specified model and the WinoGrande
+    dataset, formats the questions, and evaluates the model's performance by
+    calculating the accuracy of its predictions.
+    """
     parser = argparse.ArgumentParser(description="Evaluate a model on WinoGrande with optional BFP quantization.")
     parser.add_argument("--bft", action="store_true", help="Apply Block Floating Point quantization.")
     parser.add_argument("--m_bit", type=int, default=4, help="Mantissa bits for BFP quantization.")
@@ -47,6 +56,19 @@ def main():
     dataset = load_dataset("winogrande", "winogrande_xl", split="validation")
 
     def format_question(example):
+        """
+        Formats a single example from the WinoGrande dataset.
+
+        This function takes an example from the dataset and extracts the sentence,
+        splitting it at the placeholder to form the context. The two options are
+        treated as the choices, and the answer is converted to a numerical label.
+
+        Args:
+            example: A single example from the WinoGrande dataset.
+
+        Returns:
+            dict: A dictionary containing the formatted context, choices, and label.
+        """
         sentence = example["sentence"]
         option1 = example["option1"]
         option2 = example["option2"]

@@ -13,11 +13,17 @@ from quantize_model_script.activation_aware_weight_quantization import awq_quant
 
 def resolve_model_path(model: str) -> str:
     """
-    Resolve a preset model keyword or return the path if it exists.
+    Resolves a preset model keyword to its full path or returns the path if it exists.
 
-    Supported presets:
-      - llama-3.2-1b -> workspace model path
-      - tinyllama    -> workspace tiny llama path
+    This function supports preset keywords for commonly used models, making it easier
+    to specify model paths. If the provided string is not a preset, it is assumed to
+    be a direct path to the model.
+
+    Args:
+        model (str): The model keyword or path.
+
+    Returns:
+        str: The resolved full path to the model.
     """
     # Workspace-relative presets
     ws_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
@@ -32,14 +38,21 @@ def resolve_model_path(model: str) -> str:
 
 def quantize_model(model_path, dataset_name, dataset_config, num_samples, block_size, mantissa_bits, device="auto"):
     """
-    Quantizes a model using AWQ.
+    Quantizes a model using Activation-aware Weight Quantization (AWQ).
+
+    This function loads a pre-trained model, collects activations using a calibration dataset,
+    and then applies AWQ to quantize the model's linear layers. The quantized model is
+    saved to a new directory.
 
     Args:
-        model_path (str): Path to the model to be quantized.
-        dataset_name (str): Name of the dataset to use for calibration.
-        num_samples (int): Number of samples to use for calibration.
-        block_size (int): Block size for BFP quantization.
-        mantissa_bits (int): Number of mantissa bits for BFP quantization.
+        model_path (str): The path to the pre-trained model to be quantized.
+        dataset_name (str): The name of the dataset to use for calibration (e.g., "wikitext").
+        dataset_config (str): The specific configuration of the dataset to use.
+        num_samples (int): The number of samples from the dataset to use for calibration.
+        block_size (int): The block size to be used for block floating-point (BFP) quantization.
+        mantissa_bits (int): The number of mantissa bits for BFP quantization.
+        device (str, optional): The device to run the quantization on ("auto", "cpu", "cuda").
+            Defaults to "auto".
     """
     # Resolve device
     if device == "auto":
@@ -100,6 +113,13 @@ def quantize_model(model_path, dataset_name, dataset_config, num_samples, block_
     print(f"Quantized model saved to: {output_dir}")
 
 def main():
+    """
+    The main entry point for the AWQ fix-precision quantization script.
+
+    This function parses command-line arguments, loads the model and dataset, and then
+    iterates through a list of mantissa bit settings, applying AWQ quantization for each
+    setting and saving the resulting models.
+    """
     parser = argparse.ArgumentParser(description="AWQ Fix-Precision Quantization CLI")
     parser.add_argument("--model", type=str, default="llama-3.2-1b",
                         help="Model preset or path. Presets: llama-3.2-1b, tinyllama")

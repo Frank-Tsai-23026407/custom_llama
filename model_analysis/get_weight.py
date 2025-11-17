@@ -12,6 +12,24 @@ example_input = '\n<|user|>:>:A man is seen bending down before a set of weights
 
 
 def predict_next_token(logits, tokenizer, top_k=5, print_topk=False):
+    """
+    Predicts the next token from a given set of logits.
+
+    This function takes the output logits from a language model, computes the token
+    probabilities using softmax, and identifies the most likely next token. It can also
+    print the top-k predicted tokens and their probabilities.
+
+    Args:
+        logits (torch.Tensor): The output logits from the model, with shape
+            (batch_size, seq_len, vocab_size).
+        tokenizer: The tokenizer used to decode token IDs.
+        top_k (int, optional): The number of top predictions to print. Defaults to 5.
+        print_topk (bool, optional): Whether to print the top-k predictions.
+            Defaults to False.
+
+    Returns:
+        int: The ID of the predicted next token.
+    """
     # logits: (batch_size, seq_len, vocab_size)
     probs = torch.softmax(logits, dim=-1)  # Convert logits to probabilities
     next_token_id = torch.argmax(probs[:, -1, :], dim=-1)  # Get the token ID with the highest probability for the last token
@@ -25,6 +43,14 @@ def predict_next_token(logits, tokenizer, top_k=5, print_topk=False):
     return next_token_id.item()
 
 def main():
+    """
+    Analyzes the weights of a TinyLlama model and the correlation between embeddings.
+
+    This function loads a pre-trained TinyLlama model, performs a forward pass to
+    collect intermediate latents and attention scores, and predicts the next token at
+    each layer. It also analyzes and plots the correlation between the model's input
+    embedding and output LM head weights.
+    """
     # Step 1: Load the tinyllama model & example input
     device = 'cpu'
     # Use torch.float32 for consistency and to avoid bfloat16 issues if not using a GPU
