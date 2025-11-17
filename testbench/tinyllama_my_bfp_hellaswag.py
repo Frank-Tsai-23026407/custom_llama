@@ -21,6 +21,19 @@ from llama_backend.llama_my import LlamaMyModel
 
 
 def preprocess(text):
+    """
+    Preprocesses a given text by stripping whitespace and removing specific artifacts.
+
+    This function is designed to clean up text from the HellaSwag dataset, which may
+    contain artifacts like "[title]" or other bracketed expressions from its WikiHow
+    source.
+
+    Args:
+        text (str): The text to be preprocessed.
+
+    Returns:
+        str: The cleaned-up text.
+    """
     text = text.strip()
     # NOTE: Brackets are artifacts of the WikiHow dataset portion of HellaSwag.
     text = text.replace(" [title]", ". ")
@@ -30,6 +43,19 @@ def preprocess(text):
 
 
 def process_docs(dataset: datasets.Dataset) -> datasets.Dataset:
+    """
+    Processes a HellaSwag dataset to format it for evaluation.
+
+    This function takes a HellaSwag dataset and applies a transformation to each
+    document, combining context fields, preprocessing choices, and extracting the
+    correct answer label.
+
+    Args:
+        dataset (datasets.Dataset): The HellaSwag dataset to be processed.
+
+    Returns:
+        datasets.Dataset: The processed dataset with formatted fields.
+    """
     def _process_doc(doc):
         ctx = doc["ctx_a"] + " " + doc["ctx_b"].capitalize()
         out_doc = {
@@ -42,6 +68,14 @@ def process_docs(dataset: datasets.Dataset) -> datasets.Dataset:
     return dataset.map(_process_doc)
 
 def main():
+    """
+    Evaluates a model on the HellaSwag dataset with optional BFP quantization and backend selection.
+
+    This function parses command-line arguments to configure the evaluation, including
+    BFP quantization settings, model path, execution backend, and precision control.
+    It loads the HellaSwag dataset, processes it, and then evaluates the specified
+    model's performance, reporting both accuracy and normalized accuracy.
+    """
     parser = argparse.ArgumentParser(description="Evaluate a model on HellaSwag with optional BFP quantization.")
     parser.add_argument("--bft", action="store_true", help="Apply Block Floating Point quantization.")
     parser.add_argument("--m_bit", type=int, default=4, help="Mantissa bits for BFP quantization.")
@@ -129,6 +163,18 @@ def main():
 
     # Function to format HellaSwag questions for TinyLlama
     def format_question(example):
+        """
+        Formats a single example from the processed HellaSwag dataset.
+
+        This function takes an example from the processed dataset and extracts the
+        query as the context, the endings as choices, and the gold label.
+
+        Args:
+            example: A single example from the processed HellaSwag dataset.
+
+        Returns:
+            dict: A dictionary containing the formatted context, choices, and label.
+        """
         context = example["query"]
         endings = example["choices"]
         

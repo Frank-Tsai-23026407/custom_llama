@@ -21,6 +21,15 @@ from llama_backend.llama_my import LlamaMyModel
 
 
 def main():
+    """
+    Evaluates a model on the ARC-Easy dataset with optional BFP quantization.
+
+    This function parses command-line arguments to configure the evaluation, including
+    whether to apply Block Floating-Point (BFP) quantization, the mantissa bits, and
+    the block size for BFP. It then loads the specified model and the ARC-Easy
+    dataset, formats the questions, and evaluates the model's performance by
+    calculating the accuracy of its predictions.
+    """
     parser = argparse.ArgumentParser(description="Evaluate a model on ARC-Easy with optional BFP quantization.")
     parser.add_argument("--bft", action="store_true", help="Apply Block Floating Point quantization.")
     parser.add_argument("--m_bit", type=int, default=4, help="Mantissa bits for BFP quantization.")
@@ -47,6 +56,18 @@ def main():
     dataset = load_dataset("ai2_arc", "ARC-Easy", split="test")
 
     def format_question(example):
+        """
+        Formats a single example from the ARC-Easy dataset.
+
+        This function takes an example from the dataset and extracts the question,
+        choices, and the correct answer, formatting them into a dictionary.
+
+        Args:
+            example: A single example from the ARC-Easy dataset.
+
+        Returns:
+            dict: A dictionary containing the formatted context, choices, and label.
+        """
         context = example["question"]
         choices = example["choices"]["text"]
         choice_labels = example["choices"]["label"]

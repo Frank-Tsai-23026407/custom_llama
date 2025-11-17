@@ -108,6 +108,19 @@ from quantize_model_script.activation_aware_weight_quantization import get_weigh
 
 
 def resolve_model_path(model: str) -> str:
+    """
+    Resolves a preset model keyword to its full path or returns the path if it exists.
+
+    This function supports preset keywords for commonly used models, making it easier
+    to specify model paths. If the provided string is not a preset, it is assumed to
+    be a direct path to the model.
+
+    Args:
+        model (str): The model keyword or path.
+
+    Returns:
+        str: The resolved full path to the model.
+    """
     ws_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
     presets = {
         "llama-3.2-1b": os.path.join(ws_root, "model/llama-3.2-1b/Llama-3.2-1B"),
@@ -118,6 +131,13 @@ def resolve_model_path(model: str) -> str:
     return model
 
 def main():
+    """
+    The main entry point for the AWQ mix-precision quantization script.
+
+    This function parses command-line arguments, loads the model and dataset, and then
+    iterates through a list of mantissa bit settings, applying mix-precision AWQ
+    quantization for each setting and saving the resulting models.
+    """
     parser = argparse.ArgumentParser(description="AWQ Mix-Precision Quantization CLI")
     parser.add_argument("--model", type=str, default="llama-3.2-1b",
                         help="Model preset or path. Presets: llama-3.2-1b, tinyllama")

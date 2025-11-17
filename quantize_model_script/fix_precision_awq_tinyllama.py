@@ -11,14 +11,19 @@ from quantize_model_script.activation_aware_weight_quantization import awq_quant
 
 def quantize_model(model_path, dataset_name, dataset_config, num_samples, block_size, mantissa_bits):
     """
-    Quantizes a model using AWQ.
+    Quantizes a model using Activation-aware Weight Quantization (AWQ).
+
+    This function loads a pre-trained model, collects activations using a calibration dataset,
+    and then applies AWQ to quantize the model's linear layers. The quantized model is
+    saved to a new directory.
 
     Args:
-        model_path (str): Path to the model to be quantized.
-        dataset_name (str): Name of the dataset to use for calibration.
-        num_samples (int): Number of samples to use for calibration.
-        block_size (int): Block size for BFP quantization.
-        mantissa_bits (int): Number of mantissa bits for BFP quantization.
+        model_path (str): The path to the pre-trained model to be quantized.
+        dataset_name (str): The name of the dataset to use for calibration (e.g., "wikitext").
+        dataset_config (str): The specific configuration of the dataset to use.
+        num_samples (int): The number of samples from the dataset to use for calibration.
+        block_size (int): The block size to be used for block floating-point (BFP) quantization.
+        mantissa_bits (int): The number of mantissa bits for BFP quantization.
     """
     print("Loading model and tokenizer...")
     model = AutoModelForCausalLM.from_pretrained(model_path)
@@ -74,6 +79,13 @@ def quantize_model(model_path, dataset_name, dataset_config, num_samples, block_
     print(f"Quantized model saved to: {output_dir}")
 
 if __name__ == '__main__':
+    """
+    The main entry point for the TinyLlama fix-precision AWQ quantization script.
+
+    This script loads the TinyLlama model, collects activations using a calibration
+    dataset, and then applies fix-precision AWQ quantization for a range of mantissa
+    bit settings. The resulting quantized models are saved to separate directories.
+    """
     MODEL_PATH = "/home/frank23026407/TinyLlama/model/tinyllama/TinyLlmam_1.1v"
     DATASET_NAME = "Salesforce/wikitext"
     DATASET_CONFIG = "wikitext-103-raw-v1"

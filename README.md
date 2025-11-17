@@ -1,8 +1,22 @@
 # Custom TinyLlama Implementation
 
-This project is a from-scratch implementation of the Llama architecture in PyTorch (not only for TinyLlama). The primary focus of this repository is to explore, implement, and evaluate advanced weight quantization techniques, particularly Activation-Aware Weight Quantization (AWQ) and can be extend to all kind of quantization techniques and backends.
+This project is a from-scratch implementation of the Llama architecture in PyTorch, with a primary focus on exploring, implementing, and evaluating advanced weight quantization techniques. The repository provides a comprehensive toolkit for quantizing language models, running evaluations on various benchmarks, and analyzing the performance of different precision settings.
 
-It includes a comprehensive suite of tools for quantizing the model, running evaluations on various benchmarks, and comparing the performance of different precision settings against reference implementations.
+## How It Works
+
+The core of this repository is a custom Llama implementation that allows for fine-grained control over the model's execution. This is complemented by a suite of tools for quantization and evaluation, enabling a deep analysis of the trade-offs between model size, performance, and accuracy.
+
+### Custom Backend
+
+The `llama_backend` directory contains the core Llama implementation, which is designed to be highly modular and customizable. The custom backend allows for experimentation with different precision policies and execution strategies, providing a platform for research and development in language model optimization.
+
+### Quantization
+
+The `quantize_model_script` directory contains scripts for applying Activation-Aware Weight Quantization (AWQ) to the model. These scripts allow for both fixed and mixed-precision quantization, and can be easily extended to support other quantization techniques.
+
+### Evaluation
+
+The `testbench` directory provides a comprehensive suite of evaluation scripts for benchmarking the performance of the quantized models. These scripts support a variety of popular language model evaluation tasks, and can be used to compare the performance of the custom implementation against the original Hugging Face model.
 
 ## Key Features
 
@@ -25,7 +39,7 @@ It includes a comprehensive suite of tools for quantizing the model, running eva
 └───requirements.txt    # Project dependencies
 ```
 
-## Getting Started
+## Setup
 
 ### 1. Clone the Repository
 
