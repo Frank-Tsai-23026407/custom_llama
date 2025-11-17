@@ -21,6 +21,15 @@ from llama_backend.llama_my import LlamaMyModel
 
 
 def main():
+    """
+    Evaluates a model on the BoolQ dataset with optional BFP quantization.
+
+    This function parses command-line arguments to configure the evaluation, including
+    whether to apply Block Floating-Point (BFP) quantization, the mantissa bits, and
+    the block size for BFP. It then loads the specified model and the BoolQ
+    dataset, formats the questions, and evaluates the model's performance by
+    calculating the accuracy of its predictions.
+    """
     parser = argparse.ArgumentParser(description="Evaluate a model on BoolQ with optional BFP quantization.")
     parser.add_argument("--bft", action="store_true", help="Apply Block Floating Point quantization.")
     parser.add_argument("--m_bit", type=int, default=4, help="Mantissa bits for BFP quantization.")
@@ -47,6 +56,18 @@ def main():
     dataset = load_dataset("super_glue", "boolq", split="validation")
 
     def format_question(example):
+        """
+        Formats a single example from the BoolQ dataset.
+
+        This function takes an example from the dataset and combines the passage
+        and question to form the context. The choices are fixed to "no" and "yes".
+
+        Args:
+            example: A single example from the BoolQ dataset.
+
+        Returns:
+            dict: A dictionary containing the formatted context, choices, and label.
+        """
         context = example["passage"] + "\n" + example["question"] + "?"
         choices = ["no", "yes"]
         gold = int(example["label"])

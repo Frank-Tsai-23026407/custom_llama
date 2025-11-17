@@ -8,11 +8,23 @@ import math
 
 
 class HFRotaryEmbedding:
-    """Precompute cos/sin cache for RoPE matching HF transformers.
+    """
+    Implements Rotary Position Embedding (RoPE) compatible with Hugging Face's transformers.
 
-    Added option `cache_dtype` so users can experiment with lower precision
-    (e.g. torch.float16 / torch.bfloat16) for the precomputed sin/cos tables.
-    Lower precision reduces memory bandwidth but may introduce tiny numeric drift.
+    This class pre-computes the sine and cosine values for RoPE, which can be cached
+    and reused for efficiency. It includes an option to specify the data type of the
+    cache to experiment with lower precision.
+
+    Args:
+        dim (int): The dimension of the embeddings.
+        max_position_embeddings (int, optional): The maximum sequence length.
+            Defaults to 2048.
+        base (int, optional): The base value for the inverse frequency calculation.
+            Defaults to 10000.
+        device (torch.device, optional): The device to create the cache on.
+            Defaults to None.
+        cache_dtype (torch.dtype, optional): The data type for the cache.
+            Defaults to torch.float32.
     """
     
     def __init__(self, dim, max_position_embeddings=2048, base=10000, device=None, cache_dtype: torch.dtype = torch.float32):
@@ -31,11 +43,29 @@ class HFRotaryEmbedding:
         self._set_cos_sin_cache(max_position_embeddings, device)
     
     def register_buffer(self, name, tensor):
-        """Simple buffer storage."""
+        """
+        Registers a buffer to the object.
+
+        This method provides a simple way to store a tensor as a buffer, making it
+        part of the object's state.
+
+        Args:
+            name (str): The name of the buffer.
+            tensor (torch.Tensor): The tensor to be registered.
+        """
         setattr(self, name, tensor)
     
     def _set_cos_sin_cache(self, seq_len, device):
-        """Precompute cos/sin for positions [0, seq_len) in `cache_dtype`."""
+        """
+        Pre-computes and caches the cosine and sine values for RoPE.
+
+        This method calculates the cosine and sine values for a given sequence length
+        and stores them in the cache.
+
+        Args:
+            seq_len (int): The sequence length.
+            device (torch.device): The device to create the cache on.
+        """
         self.max_seq_len_cached = seq_len
         t = torch.arange(seq_len, device=device, dtype=self.inv_freq.dtype)
         freqs = torch.outer(t, self.inv_freq)  # (seq_len, dim/2)
@@ -46,15 +76,18 @@ class HFRotaryEmbedding:
         self.sin_cached = emb.sin().to(self.cache_dtype)
     
     def forward(self, x, seq_len):
-        """Return cos, sin for sequence length seq_len.
-        
+        """
+        Retrieves the cosine and sine caches for a given sequence length.
+
+        If the requested sequence length is greater than the cached length, this method
+        will first expand the cache.
+
         Args:
-            x: input tensor (unused, for API compatibility)
-            seq_len: sequence length
-            
+            x (torch.Tensor): The input tensor (unused, for API compatibility).
+            seq_len (int): The sequence length.
+
         Returns:
-            cos: (seq_len, dim) cosine cache
-            sin: (seq_len, dim) sine cache
+            tuple[torch.Tensor, torch.Tensor]: A tuple containing the cosine and sine caches.
         """
         if seq_len > self.max_seq_len_cached:
             self._set_cos_sin_cache(seq_len, x.device)
@@ -62,24 +95,38 @@ class HFRotaryEmbedding:
 
 
 def rotate_half(x):
-    """Rotate half the hidden dims of the input (HF implementation)."""
+    """
+    Rotates half of the hidden dimensions of the input tensor.
+
+    This function is a key component of RoPE, splitting the input tensor into two
+    halves and concatenating them in reverse order with the second half negated.
+
+    Args:
+        x (torch.Tensor): The input tensor.
+
+    Returns:
+        torch.Tensor: The tensor with half of its dimensions rotated.
+    """
     x1 = x[..., : x.shape[-1] // 2]
     x2 = x[..., x.shape[-1] // 2 :]
     return torch.cat((-x2, x1), dim=-1)
 
 
 def apply_rotary_pos_emb(q, k, cos, sin):
-    """Apply RoPE to query and key tensors (HF-compatible).
-    
+    """
+    Applies Rotary Position Embedding (RoPE) to the query and key tensors.
+
+    This function applies the pre-computed cosine and sine values to the query and
+    key tensors to incorporate positional information.
+
     Args:
-        q: query tensor (batch, num_heads, seq_len, head_dim)
-        k: key tensor (batch, num_kv_heads, seq_len, head_dim)
-        cos: cosine cache (seq_len, head_dim)
-        sin: sine cache (seq_len, head_dim)
-        
+        q (torch.Tensor): The query tensor.
+        k (torch.Tensor): The key tensor.
+        cos (torch.Tensor): The cosine cache.
+        sin (torch.Tensor): The sine cache.
+
     Returns:
-        q_embed: rotated query
-        k_embed: rotated key
+        tuple[torch.Tensor, torch.Tensor]: A tuple containing the rotated query and key tensors.
     """
     # Expand cos/sin to match q/k: (1, 1, seq_len, head_dim)
     cos = cos.unsqueeze(0).unsqueeze(0)
@@ -91,14 +138,18 @@ def apply_rotary_pos_emb(q, k, cos, sin):
 
 
 def repeat_kv(hidden_states, n_rep):
-    """Repeat key/value heads for grouped-query attention (HF implementation).
-    
+    """
+    Repeats the key/value heads for grouped-query attention.
+
+    This function expands the key/value heads to match the number of query heads,
+    which is a key feature of grouped-query attention (GQA).
+
     Args:
-        hidden_states: (batch, num_kv_heads, seq_len, head_dim)
-        n_rep: repetition factor (num_heads // num_kv_heads)
-        
+        hidden_states (torch.Tensor): The hidden states of the key or value.
+        n_rep (int): The number of times to repeat the heads.
+
     Returns:
-        repeated: (batch, num_heads, seq_len, head_dim)
+        torch.Tensor: The repeated hidden states.
     """
     if n_rep == 1:
         return hidden_states

@@ -16,6 +16,18 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 def plot_model_weights(model):
+    """
+    Plots the weights of a given model.
+
+    This function iterates through all the named parameters of a model, and for each
+    weight matrix, it generates and saves a plot containing three subplots:
+    1. A heatmap of the weight matrix.
+    2. A histogram of the weight distribution.
+    3. A plot of a weight outlier index for each neuron.
+
+    Args:
+        model: The model whose weights are to be plotted.
+    """
     weights_matrix = []
     weights = []
     layer_names = []
@@ -63,4 +75,11 @@ def plot_model_weights(model):
 
 # Step 3: main
 if __name__ == "__main__":
+    """
+    The main entry point for the script.
+
+    This script loads a pre-trained TinyLlama model and then calls the
+    `plot_model_weights` function to generate and save plots of the model's
+    weight matrices.
+    """
     plot_model_weights(model)

@@ -43,20 +43,29 @@ def clone_attention(
     position_ids=None,
     attention_mask=None
 ):
-    """Llama attention exactly matching HF LlamaAttention.
-    
+    """
+    Performs the attention mechanism, exactly matching the Hugging Face LlamaAttention implementation.
+
+    This function computes the scaled dot-product attention, including query, key, and value
+    projections, rotary position embeddings (RoPE), and grouped-query attention (GQA).
+
     Args:
-        hidden_states: (batch, seq_len, hidden_size)
-        wq, wk, wv, wo: weight tensors
-        num_heads: number of query heads
-        num_kv_heads: number of key/value heads (for GQA)
-        head_dim: dimension per head
-        rope_emb: HFRotaryEmbedding instance
-        position_ids: optional position indices (defaults to [0..seq_len-1])
-        attention_mask: optional mask (None for causal)
-        
+        hidden_states (torch.Tensor): The input hidden states, with shape
+            (batch_size, seq_len, hidden_size).
+        wq (torch.Tensor): The weight tensor for the query projection.
+        wk (torch.Tensor): The weight tensor for the key projection.
+        wv (torch.Tensor): The weight tensor for the value projection.
+        wo (torch.Tensor): The weight tensor for the output projection.
+        num_heads (int): The number of attention heads.
+        num_kv_heads (int): The number of key/value heads for GQA.
+        head_dim (int): The dimension of each attention head.
+        rope_emb (HFRotaryEmbedding): The rotary position embedding layer.
+        position_ids (torch.Tensor, optional): The position IDs for RoPE. Defaults to None.
+        attention_mask (torch.Tensor, optional): The attention mask. Defaults to None.
+
     Returns:
-        attn_output: (batch, seq_len, hidden_size)
+        torch.Tensor: The output of the attention mechanism, with shape
+            (batch_size, seq_len, hidden_size).
     """
     bsz, q_len, hidden_size = hidden_states.shape
     
@@ -107,14 +116,21 @@ def clone_attention(
 
 
 def clone_mlp(hidden_states, w_gate, w_up, w_down):
-    """Llama MLP (SwiGLU) matching HF LlamaMLP exactly.
-    
+    """
+    Performs the MLP (SwiGLU) forward pass, exactly matching the Hugging Face LlamaMLP implementation.
+
+    This function computes the SwiGLU activation, which involves a gated linear unit
+    with the SiLU (Swish) activation function.
+
     Args:
-        hidden_states: (batch, seq_len, hidden_size)
-        w_gate, w_up, w_down: weight tensors
-        
+        hidden_states (torch.Tensor): The input hidden states, with shape
+            (batch_size, seq_len, hidden_size).
+        w_gate (torch.Tensor): The weight tensor for the gate projection.
+        w_up (torch.Tensor): The weight tensor for the up projection.
+        w_down (torch.Tensor): The weight tensor for the down projection.
+
     Returns:
-        output: (batch, seq_len, hidden_size)
+        torch.Tensor: The output of the MLP, with shape (batch_size, seq_len, hidden_size).
     """
     gate = hidden_states @ w_gate.t()
     up = hidden_states @ w_up.t()
@@ -137,20 +153,32 @@ def clone_decoder_layer(
     rms_eps=1e-6,
     attention_mask=None
 ):
-    """Single decoder layer matching HF LlamaDecoderLayer exactly.
-    
+    """
+    Performs a single decoder layer forward pass, exactly matching the Hugging Face LlamaDecoderLayer.
+
+    This function combines the self-attention block and the MLP block, with RMS normalization
+    and residual connections, to form a complete Llama decoder layer.
+
     Args:
-        hidden_states: (batch, seq_len, hidden_size)
-        norm1_weight, norm2_weight: RMSNorm weights
-        wq, wk, wv, wo: attention weights
-        w_gate, w_up, w_down: MLP weights
-        num_heads, num_kv_heads, head_dim: attention config
-        rope_emb: RoPE embedding instance
-        rms_eps: RMSNorm epsilon
-        attention_mask: optional mask
-        
+        hidden_states (torch.Tensor): The input hidden states.
+        norm1_weight (torch.Tensor): The weight for the first RMS normalization.
+        wq (torch.Tensor): The weight for the query projection in attention.
+        wk (torch.Tensor): The weight for the key projection in attention.
+        wv (torch.Tensor): The weight for the value projection in attention.
+        wo (torch.Tensor): The weight for the output projection in attention.
+        norm2_weight (torch.Tensor): The weight for the second RMS normalization.
+        w_gate (torch.Tensor): The weight for the gate projection in the MLP.
+        w_up (torch.Tensor): The weight for the up projection in the MLP.
+        w_down (torch.Tensor): The weight for the down projection in the MLP.
+        num_heads (int): The number of attention heads.
+        num_kv_heads (int): The number of key/value heads for GQA.
+        head_dim (int): The dimension of each attention head.
+        rope_emb (HFRotaryEmbedding): The rotary position embedding layer.
+        rms_eps (float, optional): The epsilon value for RMS normalization. Defaults to 1e-6.
+        attention_mask (torch.Tensor, optional): The attention mask. Defaults to None.
+
     Returns:
-        output: (batch, seq_len, hidden_size)
+        torch.Tensor: The output hidden states of the decoder layer.
     """
     # Self-attention block
     residual = hidden_states

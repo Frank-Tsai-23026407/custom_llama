@@ -11,6 +11,23 @@ from ..custom.plain_script import rmsnorm, input_embedding, lm_head
 
 
 def build_rope_cache(seq_len: int, head_dim: int, base: float = 10000.0, device=None, dtype=torch.float32):
+    """
+    Builds the RoPE (Rotary Position Embedding) cache of sine and cosine values.
+
+    This function pre-computes the sine and cosine values for RoPE, which can be
+    cached and reused for efficiency.
+
+    Args:
+        seq_len (int): The sequence length.
+        head_dim (int): The dimension of each attention head.
+        base (float, optional): The base value for the inverse frequency calculation.
+            Defaults to 10000.0.
+        device (torch.device, optional): The device to create the cache on. Defaults to None.
+        dtype (torch.dtype, optional): The data type for the cache. Defaults to torch.float32.
+
+    Returns:
+        tuple[torch.Tensor, torch.Tensor]: A tuple containing the cosine and sine caches.
+    """
     positions = torch.arange(0, seq_len, dtype=dtype, device=device)
     inv_freq = 1.0 / (base ** (torch.arange(0, head_dim, 2, device=device, dtype=dtype) / head_dim))
     freqs = torch.outer(positions, inv_freq)  # (S, D/2)
@@ -20,18 +37,21 @@ def build_rope_cache(seq_len: int, head_dim: int, base: float = 10000.0, device=
 
 
 def apply_rotary_pos_emb(q: torch.Tensor, k: torch.Tensor, cos: torch.Tensor, sin: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
-    """Apply RoPE using HF's rotate_half method (split at middle, not interleaved).
-    
-    HF implementation: rotate_half splits tensor into [first_half, second_half]
-    and returns cat([-second_half, first_half]).
-    This is different from interleaved even/odd indexing.
-    
+    """
+    Applies Rotary Position Embedding (RoPE) to the query and key tensors.
+
+    This function uses the 'rotate_half' method to apply RoPE, which is consistent
+    with the Hugging Face implementation. It splits the tensors at the middle and
+    swaps the halves with negation.
+
     Args:
-        q, k: (B, H, S, D) query and key tensors
-        cos, sin: (1, 1, S, D/2) or (1, 1, S, D) cosine and sine tables
-        
+        q (torch.Tensor): The query tensor, with shape (B, H, S, D).
+        k (torch.Tensor): The key tensor, with shape (B, H, S, D).
+        cos (torch.Tensor): The cosine cache for RoPE.
+        sin (torch.Tensor): The sine cache for RoPE.
+
     Returns:
-        q_embed, k_embed: rotated query and key
+        tuple[torch.Tensor, torch.Tensor]: A tuple containing the rotated query and key tensors.
     """
     # Unsqueeze cos/sin if they're (1,1,S,D/2) to match (B,H,S,D)
     # HF's cos/sin are actually (seq_len, head_dim) but get unsqueezed to (1, 1, seq_len, head_dim)
@@ -63,8 +83,29 @@ def clone_attention_ffn(
     compute_dtype: torch.dtype = torch.bfloat16,
     softmax_fp32: bool = True,
 ) -> Tuple[torch.Tensor, Optional[torch.Tensor]]:
-    """Replicate a single Llama decoder layer (attention + MLP) with residuals.
-    params expects keys: norm1_weight, norm2_weight, wq,wk,wv,wo,w_gate,w_up,w_down
+    """
+    Replicates a single Llama decoder layer, including attention and MLP with residuals.
+
+    This function performs a full forward pass of a single Llama decoder layer,
+    including RMS normalization, attention, and the feed-forward network (FFN). It
+    supports configurable computation and softmax data types for precision control.
+
+    Args:
+        x (torch.Tensor): The input tensor.
+        params (dict): A dictionary of layer parameters, including weights for normalization,
+            attention, and MLP.
+        num_heads (int): The number of attention heads.
+        num_kv_heads (int): The number of key/value heads for GQA.
+        rms_eps (float): The epsilon value for RMS normalization.
+        rope_cache (tuple[torch.Tensor, torch.Tensor]): The RoPE cache.
+        return_attn (bool, optional): Whether to return the attention weights. Defaults to False.
+        compute_dtype (torch.dtype, optional): The data type for computation.
+            Defaults to torch.bfloat16.
+        softmax_fp32 (bool, optional): Whether to use float32 for softmax. Defaults to True.
+
+    Returns:
+        tuple[torch.Tensor, torch.Tensor or None]: A tuple containing the output tensor and,
+            optionally, the attention weights.
     """
     B, S, D = x.shape
     # Cast working tensor to compute dtype (default bf16) while keeping weights already provided in that dtype.
@@ -127,11 +168,30 @@ def clone_forward_all(
     compute_dtype: torch.dtype = torch.bfloat16,
     softmax_fp32: bool = True,
 ) -> Tuple[torch.Tensor, list]:
-    """Functional forward of all layers using a shared RoPE cache.
+    """
+    Performs a functional forward pass of all decoder layers.
 
-    Added `rope_cache_dtype` so users can experiment with lower precision
-    sin/cos tables (e.g. float16/bfloat16). This may change numerical parity
-    very slightly; keep bfloat16 for bit-exact comparisons.
+    This function iterates through a list of layer parameters, applying the
+    `clone_attention_ffn` function for each layer to compute the full forward
+    pass of the model. It uses a shared RoPE cache for efficiency.
+
+    Args:
+        x (torch.Tensor): The input tensor.
+        layers_params (list): A list of dictionaries, where each dictionary
+            contains the parameters for a single decoder layer.
+        num_heads (int): The number of attention heads.
+        num_kv_heads (int): The number of key/value heads for GQA.
+        rms_eps (float): The epsilon value for RMS normalization.
+        rope_cache_dtype (torch.dtype, optional): The data type for the RoPE
+            cache. Defaults to torch.bfloat16.
+        compute_dtype (torch.dtype, optional): The data type for computation.
+            Defaults to torch.bfloat16.
+        softmax_fp32 (bool, optional): Whether to use float32 for softmax.
+            Defaults to True.
+
+    Returns:
+        tuple[torch.Tensor, list]: A tuple containing the final output tensor
+            and a list of latent states from each layer.
     """
     latents = [x]
     S = x.shape[1]
