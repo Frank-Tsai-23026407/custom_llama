@@ -62,12 +62,12 @@ sh awq/run_precision_sweep_quick.sh
 cd /home/frank23026407/TinyLlama
 
 # 範例：評估 mix-precision b128 m4
-conda run -n tinyllama-env python awq/tinyllama_my_bfp_hellaswag.py \
+conda run -n tinyllama-env python awq/task_script_hellaswag.py \
   --backend huggingface \
   --model_path model/tinyllama/TinyLlama_1.1v-awq-quantized-mix-precision-b128-m4
 
 # 快速測試（100 樣本）
-conda run -n tinyllama-env python awq/tinyllama_my_bfp_hellaswag.py \
+conda run -n tinyllama-env python awq/task_script_hellaswag.py \
   --backend huggingface \
   --model_path model/tinyllama/TinyLlama_1.1v-awq-quantized-fix-precision-b128-m3 \
   --max_samples 100
@@ -151,7 +151,7 @@ grep "Accuracy (acc_norm):" awq/log/precision_sweep/awq_*fix-precision*.log
 AWQ 模型使用 HuggingFace backend 直接載入：
 
 ```python
-# tinyllama_my_bfp_hellaswag.py 中的實作
+# task_script_hellaswag.py 中的實作
 my_model = LlamaMyModel(
     model_name=model_path,  # 指向 AWQ 量化模型路徑
     device=device,
@@ -234,14 +234,14 @@ cd /home/frank23026407/TinyLlama
 
 ```bash
 # 確保使用 conda 環境
-conda run -n tinyllama-env python awq/tinyllama_my_bfp_hellaswag.py ...
+conda run -n tinyllama-env python awq/task_script_hellaswag.py ...
 ```
 
 ### 問題：記憶體不足
 
 ```bash
 # 使用 --max_samples 限制資料集大小
-python awq/tinyllama_my_bfp_hellaswag.py \
+python awq/task_script_hellaswag.py \
   --backend huggingface \
   --model_path model/tinyllama/TinyLlama_1.1v-awq-quantized-mix-precision-b128-m4 \
   --max_samples 1000  # 只評估 1000 個樣本

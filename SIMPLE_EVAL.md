@@ -108,14 +108,14 @@ Custom scripts in `awq/` directory provide precision-aware evaluation with custo
 #### Basic HellaSwag Evaluation
 
 ```bash
-python awq/tinyllama_my_bfp_hellaswag.py \
+python awq/task_script_hellaswag.py \
     --model_path model/tinyllama/TinyLlmam_1.1v
 ```
 
 #### With Specific Precision Policy
 
 ```bash
-python awq/tinyllama_my_bfp_hellaswag.py \
+python awq/task_script_hellaswag.py \
     --model_path model/tinyllama/TinyLlmam_1.1v \
     --precision bf16
 ```
@@ -128,7 +128,7 @@ Available precision policies:
 #### Limit Examples (Quick Test)
 
 ```bash
-python awq/tinyllama_my_bfp_hellaswag.py \
+python awq/task_script_hellaswag.py \
     --model_path model/tinyllama/TinyLlmam_1.1v \
     --limit 100
 ```
@@ -139,11 +139,11 @@ python awq/tinyllama_my_bfp_hellaswag.py \
 
 ```bash
 # m2 (2-bit mantissa)
-python awq/tinyllama_my_bfp_hellaswag.py \
+python awq/task_script_hellaswag.py \
     --model_path model/tinyllama/TinyLlama_1.1v-awq-quantized-mix-precision-b128-m2
 
 # m5 (5-bit mantissa)
-python awq/tinyllama_my_bfp_hellaswag.py \
+python awq/task_script_hellaswag.py \
     --model_path model/tinyllama/TinyLlama_1.1v-awq-quantized-mix-precision-b128-m5
 ```
 
@@ -151,11 +151,11 @@ python awq/tinyllama_my_bfp_hellaswag.py \
 
 ```bash
 # m2 (2-bit mantissa)
-python awq/tinyllama_my_bfp_hellaswag.py \
+python awq/task_script_hellaswag.py \
     --model_path model/tinyllama/TinyLlama_1.1v-awq-quantized-fix-precision-b128-m2
 
 # m5 (5-bit mantissa)
-python awq/tinyllama_my_bfp_hellaswag.py \
+python awq/task_script_hellaswag.py \
     --model_path model/tinyllama/TinyLlama_1.1v-awq-quantized-fix-precision-b128-m5
 ```
 
@@ -164,42 +164,42 @@ python awq/tinyllama_my_bfp_hellaswag.py \
 #### BoolQ
 
 ```bash
-python awq/tinyllama_my_bfp_boolq.py \
+python awq/task_script_boolq.py \
     --model_path model/tinyllama/TinyLlmam_1.1v
 ```
 
 #### ARC-Easy
 
 ```bash
-python awq/tinyllama_my_bfp_arc_e.py \
+python awq/task_script_arc_e.py \
     --model_path model/tinyllama/TinyLlmam_1.1v
 ```
 
 #### ARC-Challenge
 
 ```bash
-python awq/tinyllama_my_bfp_arc_c.py \
+python awq/task_script_arc_c.py \
     --model_path model/tinyllama/TinyLlmam_1.1v
 ```
 
 #### PIQA
 
 ```bash
-python awq/tinyllama_my_bfp_piqa.py \
+python awq/task_script_piqa.py \
     --model_path model/tinyllama/TinyLlmam_1.1v
 ```
 
 #### Winogrande
 
 ```bash
-python awq/tinyllama_my_bfp_winogrande.py \
+python awq/task_script_winogrande.py \
     --model_path model/tinyllama/TinyLlmam_1.1v
 ```
 
 #### OpenBookQA
 
 ```bash
-python awq/tinyllama_my_bfp_obqa.py \
+python awq/task_script_obqa.py \
     --model_path model/tinyllama/TinyLlmam_1.1v
 ```
 
@@ -290,7 +290,7 @@ lm_eval --model hf \
 
 ```bash
 # Test on 100 samples
-python awq/tinyllama_my_bfp_hellaswag.py \
+python awq/task_script_hellaswag.py \
     --model_path model/tinyllama/TinyLlmam_1.1v \
     --limit 100
 ```
@@ -312,7 +312,7 @@ done
 ```bash
 # Using custom scripts
 for model in mix-precision fix-precision; do
-    python awq/tinyllama_my_bfp_hellaswag.py \
+    python awq/task_script_hellaswag.py \
         --model_path model/tinyllama/TinyLlama_1.1v-awq-quantized-${model}-b128-m5 \
         | tee results/${model}_hellaswag.log
 done

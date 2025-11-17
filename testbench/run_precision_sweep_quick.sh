@@ -21,7 +21,7 @@ echo ""
 echo "================================================================"
 echo "Testing: HuggingFace Reference (Ground Truth)"
 echo "================================================================"
-python "$PROJECT_ROOT/awq/tinyllama_my_bfp_hellaswag.py" \
+python "$PROJECT_ROOT/awq/task_script_hellaswag.py" \
     --backend huggingface \
     --max_samples "$SAMPLE_SIZE" \
     | tee "$LOG_DIR/hf_reference.log"
@@ -31,7 +31,7 @@ echo ""
 echo "================================================================"
 echo "Testing: Clone - BF16 Compute + BF16 RoPE + FP32 Softmax"
 echo "================================================================"
-python "$PROJECT_ROOT/awq/tinyllama_my_bfp_hellaswag.py" \
+python "$PROJECT_ROOT/awq/task_script_hellaswag.py" \
     --backend clone \
     --compute_dtype bf16 \
     --rope_cache_dtype bf16 \
@@ -44,7 +44,7 @@ echo ""
 echo "================================================================"
 echo "Testing: Clone - Full BF16 (no FP32 softmax)"
 echo "================================================================"
-python "$PROJECT_ROOT/awq/tinyllama_my_bfp_hellaswag.py" \
+python "$PROJECT_ROOT/awq/task_script_hellaswag.py" \
     --backend clone \
     --compute_dtype bf16 \
     --rope_cache_dtype bf16 \
@@ -56,7 +56,7 @@ echo ""
 echo "================================================================"
 echo "Testing: Clone - Full FP32 (Maximum Precision)"
 echo "================================================================"
-python "$PROJECT_ROOT/awq/tinyllama_my_bfp_hellaswag.py" \
+python "$PROJECT_ROOT/awq/task_script_hellaswag.py" \
     --backend clone \
     --compute_dtype fp32 \
     --rope_cache_dtype fp32 \
@@ -69,7 +69,7 @@ echo ""
 echo "================================================================"
 echo "Testing: Custom Backend (bf16 policy)"
 echo "================================================================"
-python "$PROJECT_ROOT/awq/tinyllama_my_bfp_hellaswag.py" \
+python "$PROJECT_ROOT/awq/task_script_hellaswag.py" \
     --backend custom \
     --precision_policy bf16 \
     --max_samples "$SAMPLE_SIZE" \
@@ -99,7 +99,7 @@ for MPATH in "${AWQ_MODELS[@]}"; do
     echo "----------------------------------------------------------------"
     echo "Testing AWQ model: $BASENAME (backend=huggingface)"
     echo "----------------------------------------------------------------"
-    python "$PROJECT_ROOT/awq/tinyllama_my_bfp_hellaswag.py" \
+    python "$PROJECT_ROOT/awq/task_script_hellaswag.py" \
             --backend huggingface \
             --model_path "$MPATH" \
             --max_samples "$SAMPLE_SIZE" \

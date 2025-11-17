@@ -109,7 +109,7 @@ The `testbench/` directory contains scripts to evaluate models on various benchm
 MODEL_CHECKPOINT="model/tinyllama/TinyLlmam_1.1v-awq-quantized-fix-precision-b64-m2"
 
 # Run evaluation using the custom backend
-python testbench/tinyllama_my_bfp_hellaswag.py \
+python testbench/task_script_hellaswag.py \
     --backend custom \
     --model_path "$MODEL_CHECKPOINT"
 ```

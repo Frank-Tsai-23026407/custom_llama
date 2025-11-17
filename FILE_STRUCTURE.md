@@ -128,13 +128,13 @@ testbench/
 ├── run_static_awq_evaluation.sh
 ├── run_static_awq_experiments.sh
 ├── test_awq_integration.sh
-├── tinyllama_my_bfp_arc_c.py
-├── tinyllama_my_bfp_arc_e.py
-├── tinyllama_my_bfp_boolq.py
-├── tinyllama_my_bfp_hellaswag.py
-├── tinyllama_my_bfp_obqa.py
-├── tinyllama_my_bfp_piqa.py
-├── tinyllama_my_bfp_winogrande.py
+├── task_script_arc_c.py
+├── task_script_arc_e.py
+├── task_script_boolq.py
+├── task_script_hellaswag.py
+├── task_script_obqa.py
+├── task_script_piqa.py
+├── task_script_winogrande.py
 └── validate_modifications.sh
 ```
 

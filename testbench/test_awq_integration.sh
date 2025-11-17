@@ -22,7 +22,7 @@ for MPATH in "${TEST_MODELS[@]}"; do
   
   echo ""
   echo "Testing: $BASENAME"
-  conda run -n tinyllama-env python "$PROJECT_ROOT/awq/tinyllama_my_bfp_hellaswag.py" \
+  conda run -n tinyllama-env python "$PROJECT_ROOT/awq/task_script_hellaswag.py" \
     --backend huggingface \
     --model_path "$PROJECT_ROOT/$MPATH" \
     --max_samples 5 \

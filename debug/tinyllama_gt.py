@@ -1,3 +1,9 @@
+import sys
+from pathlib import Path
+
+# Add parent directory to path for imports
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
 import argparse
 import torch
 from torch.utils.data import DataLoader
@@ -5,7 +11,9 @@ from transformers import AutoTokenizer, AutoModelForCausalLM
 from tqdm.auto import tqdm
 import numpy as np
 import datasets
-from .llama_backend.utils import input_formatting
+
+# customed code
+from llama_backend.utils import input_formatting
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 

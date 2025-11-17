@@ -123,7 +123,7 @@
    3. 根據需求選擇最佳壓縮率/精度平衡
 
    客製化測試:
-   1. 直接呼叫 tinyllama_my_bfp_hellaswag.py
+   1. 直接呼叫 task_script_hellaswag.py
    2. 指定特定 AWQ 模型路徑
    3. 使用 --max_samples 控制測試規模
 

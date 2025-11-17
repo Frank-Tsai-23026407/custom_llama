@@ -156,7 +156,7 @@ Clone: BF16+BF16+FP32_Softmax (Best)                    10042   0.5231    0.5894
 
 ## 🔧 修改的現有檔案
 
-### `tinyllama_my_bfp_hellaswag.py`
+### `task_script_hellaswag.py`
 
 **新增的命令列參數**:
 
@@ -241,7 +241,7 @@ awq/
 │       ├── awq_TinyLlama_1.1v-awq-quantized-fix-precision-b128-m4.log
 │       └── awq_TinyLlama_1.1v-awq-quantized-fix-precision-b128-m5.log
 │
-├── tinyllama_my_bfp_hellaswag.py    # 修改：新增精度參數
+├── task_script_hellaswag.py    # 修改：新增精度參數
 ├── run_precision_sweep_hellaswag.sh  # 新增：完整掃描
 ├── run_precision_sweep_quick.sh      # 新增：快速測試
 ├── validate_modifications.sh         # 新增：驗證腳本
@@ -261,7 +261,7 @@ awq/
 
 1. **開發/除錯階段**: 使用 `validate_modifications.sh` 或 `run_precision_sweep_quick.sh`
 2. **正式實驗**: 使用 `run_precision_sweep_hellaswag.sh`
-3. **單一配置測試**: 直接呼叫 `tinyllama_my_bfp_hellaswag.py` 並指定參數
+3. **單一配置測試**: 直接呼叫 `task_script_hellaswag.py` 並指定參數
 4. **結果比較**: 使用 `analyze_hellaswag_results.py` 產生比較表格
 
 ## ⚠️ 注意事項

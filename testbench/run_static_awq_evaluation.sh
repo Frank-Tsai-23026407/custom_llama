@@ -28,7 +28,7 @@ do
     echo "Evaluating Fix-Precision AWQ model: $MODEL_DIR"
     echo "----------------------------------------------------------------"
     
-    python "$PROJECT_ROOT/awq/tinyllama_my_bfp_hellaswag.py" --model_path "$MODEL_DIR" | tee "$LOG_DIR/fix-precision_awq_eval_m${M_BIT}_b${B_SIZE}_hellaswag.log"
+    python "$PROJECT_ROOT/awq/task_script_hellaswag.py" --model_path "$MODEL_DIR" | tee "$LOG_DIR/fix-precision_awq_eval_m${M_BIT}_b${B_SIZE}_hellaswag.log"
 done
 
 echo "All fix-precision AWQ evaluation experiments are complete."

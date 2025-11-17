@@ -4,7 +4,7 @@
 
 ### 1. 修改的檔案
 
-#### `awq/tinyllama_my_bfp_hellaswag.py`
+#### `awq/task_script_hellaswag.py`
 新增以下參數支援：
 
 **Clone Backend 精度控制：**
@@ -87,7 +87,7 @@ python awq/analyze_hellaswag_results.py awq/log/precision_sweep
 
 ```bash
 # 測試 Clone backend 的最佳配置（只用 100 個樣本）
-python awq/tinyllama_my_bfp_hellaswag.py \
+python awq/task_script_hellaswag.py \
     --backend clone \
     --compute_dtype bf16 \
     --rope_cache_dtype bf16 \

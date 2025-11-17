@@ -21,7 +21,7 @@
 
 ### Python 檔案
 
-1. **`tinyllama_my_bfp_hellaswag.py`** - 主要評估腳本
+1. **`task_script_hellaswag.py`** - 主要評估腳本
    - 支援多種 backend（huggingface, clone, custom）
    - 支援精度控制參數
    - 支援 BFP 量化選項
@@ -65,22 +65,22 @@ python awq/analyze_hellaswag_results.py awq/log/precision_sweep
 
 ```bash
 # HuggingFace reference
-python awq/tinyllama_my_bfp_hellaswag.py --backend huggingface
+python awq/task_script_hellaswag.py --backend huggingface
 
 # Clone with best precision config
-python awq/tinyllama_my_bfp_hellaswag.py \
+python awq/task_script_hellaswag.py \
     --backend clone \
     --compute_dtype bf16 \
     --rope_cache_dtype bf16 \
     --softmax_fp32
 
 # Custom with bf16 policy
-python awq/tinyllama_my_bfp_hellaswag.py \
+python awq/task_script_hellaswag.py \
     --backend custom \
     --precision_policy bf16
 
 # 快速測試（只用 100 個樣本）
-python awq/tinyllama_my_bfp_hellaswag.py \
+python awq/task_script_hellaswag.py \
     --backend clone \
     --compute_dtype bf16 \
     --rope_cache_dtype bf16 \
@@ -158,7 +158,7 @@ Custom backend 透過 precision policy 控制：
 
 ```bash
 # 使用更小的 batch size 或減少樣本數
-python awq/tinyllama_my_bfp_hellaswag.py \
+python awq/task_script_hellaswag.py \
     --backend clone \
     --compute_dtype bf16 \
     --rope_cache_dtype bf16 \

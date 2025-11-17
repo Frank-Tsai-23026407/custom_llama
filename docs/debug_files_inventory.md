@@ -84,8 +84,8 @@
 
 | 檔案 | 用途 | 狀態 | 建議 |
 |------|------|------|------|
-| `BoolQ_test.py` | BoolQ 基準測試 | 🗑️ 舊版 | **可刪除**（已有 `awq/tinyllama_my_bfp_boolq.py`） |
-| `HellaSwag_test.py` | HellaSwag 基準測試 | 🗑️ 舊版 | **可刪除**（已有 `awq/tinyllama_my_bfp_hellaswag.py`） |
+| `BoolQ_test.py` | BoolQ 基準測試 | 🗑️ 舊版 | **可刪除**（已有 `awq/task_script_boolq.py`） |
+| `HellaSwag_test.py` | HellaSwag 基準測試 | 🗑️ 舊版 | **可刪除**（已有 `awq/task_script_hellaswag.py`） |
 | `mmlu_test.py` | MMLU 基準測試 | 🗑️ 舊版 | **可刪除**（已有更完整的 lm-eval 整合） |
 
 **總結**: `gt_test/` 整個目錄可以刪除，功能已被 `awq/` 下的評估腳本取代。
@@ -132,13 +132,13 @@
 
 | 檔案 | 用途 | 狀態 | 建議 |
 |------|------|------|------|
-| `tinyllama_my_bfp_hellaswag.py` | HellaSwag 評估（支援 BFP/AWQ） | ✅ 主要工具 | **保留** |
-| `tinyllama_my_bfp_piqa.py` | PIQA 評估 | ✅ 主要工具 | **保留** |
-| `tinyllama_my_bfp_boolq.py` | BoolQ 評估 | ✅ 主要工具 | **保留** |
-| `tinyllama_my_bfp_arc_c.py` | ARC-Challenge 評估 | ✅ 主要工具 | **保留** |
-| `tinyllama_my_bfp_arc_e.py` | ARC-Easy 評估 | ✅ 主要工具 | **保留** |
-| `tinyllama_my_bfp_obqa.py` | OBQA 評估 | ✅ 主要工具 | **保留** |
-| `tinyllama_my_bfp_winogrande.py` | Winogrande 評估 | ✅ 主要工具 | **保留** |
+| `task_script_hellaswag.py` | HellaSwag 評估（支援 BFP/AWQ） | ✅ 主要工具 | **保留** |
+| `task_script_piqa.py` | PIQA 評估 | ✅ 主要工具 | **保留** |
+| `task_script_boolq.py` | BoolQ 評估 | ✅ 主要工具 | **保留** |
+| `task_script_arc_c.py` | ARC-Challenge 評估 | ✅ 主要工具 | **保留** |
+| `task_script_arc_e.py` | ARC-Easy 評估 | ✅ 主要工具 | **保留** |
+| `task_script_obqa.py` | OBQA 評估 | ✅ 主要工具 | **保留** |
+| `task_script_winogrande.py` | Winogrande 評估 | ✅ 主要工具 | **保留** |
 | `analyze_hellaswag_results.py` | 分析 HellaSwag 結果 | ✅ 分析工具 | **保留** |
 
 **說明**: `awq/` 目錄是正式的評估工具集，全部保留。
@@ -314,7 +314,7 @@ TinyLlama/
 │   └── debug_hf_vs_clone.py
 │
 ├── awq/                            # 評估腳本
-│   ├── tinyllama_my_bfp_*.py       (7 個評估腳本)
+│   ├── task_script_*.py       (7 個評估腳本)
 │   ├── analyze_hellaswag_results.py
 │   └── run_*.sh                    (各種執行腳本)
 │

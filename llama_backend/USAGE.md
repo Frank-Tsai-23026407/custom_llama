@@ -333,7 +333,7 @@ model = LlamaMyModel(
 sh awq/run_block_floating_point.sh
 
 # 單獨測試特定配置
-python awq/tinyllama_my_bfp_hellaswag.py --block_size 16 --mantissa_bits 4
+python awq/task_script_hellaswag.py --block_size 16 --mantissa_bits 4
 ```
 
 ### BFP 效能/準確度權衡
@@ -366,7 +366,7 @@ python quantize_model_script/quantize_awq.py \
     --mantissa_bits 4
 
 # 使用量化模型
-python awq/tinyllama_my_bfp_hellaswag.py \
+python awq/task_script_hellaswag.py \
     --model_path model/tinyllama/TinyLlama_1.1v-awq-quantized-fix-precision-b128-m4
 ```
 

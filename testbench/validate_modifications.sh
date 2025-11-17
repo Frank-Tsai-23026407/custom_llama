@@ -12,13 +12,13 @@ echo "========================================================"
 
 echo ""
 echo "Test 1: HuggingFace backend"
-python "$PROJECT_ROOT/awq/tinyllama_my_bfp_hellaswag.py" \
+python "$PROJECT_ROOT/awq/task_script_hellaswag.py" \
     --backend huggingface \
     --max_samples "$TEST_SAMPLES" 2>&1 | tail -8
 
 echo ""
 echo "Test 2: Clone with precision parameters"
-python "$PROJECT_ROOT/awq/tinyllama_my_bfp_hellaswag.py" \
+python "$PROJECT_ROOT/awq/task_script_hellaswag.py" \
     --backend clone \
     --compute_dtype bf16 \
     --rope_cache_dtype bf16 \
@@ -27,7 +27,7 @@ python "$PROJECT_ROOT/awq/tinyllama_my_bfp_hellaswag.py" \
 
 echo ""
 echo "Test 3: Custom with precision policy"
-python "$PROJECT_ROOT/awq/tinyllama_my_bfp_hellaswag.py" \
+python "$PROJECT_ROOT/awq/task_script_hellaswag.py" \
     --backend custom \
     --precision_policy bf16 \
     --max_samples "$TEST_SAMPLES" 2>&1 | tail -8

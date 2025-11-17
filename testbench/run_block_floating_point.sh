@@ -18,7 +18,7 @@ do
     echo "----------------------------------------------------------------"
     
     # Run the 'all' mode: quantize the model and then evaluate it on HellaSwag.
-    python "$PROJECT_ROOT/awq/tinyllama_my_bfp_hellaswag.py" --bft --m_bit "$M_BIT" --b_size "$B_SIZE" | tee "$LOG_DIR/bft_m${M_BIT}_b${B_SIZE}_hellaswag.log"
+    python "$PROJECT_ROOT/awq/task_script_hellaswag.py" --bft --m_bit "$M_BIT" --b_size "$B_SIZE" | tee "$LOG_DIR/bft_m${M_BIT}_b${B_SIZE}_hellaswag.log"
 done
 
 echo "All block floating point inference are complete."

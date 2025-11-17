@@ -18,7 +18,7 @@ mkdir -p "$LOG_DIR"
 # echo "================================================================"
 # echo "Config 1: BF16 Compute + BF16 RoPE + FP32 Softmax (Best Config)"
 # echo "================================================================"
-# python "$PROJECT_ROOT/awq/tinyllama_my_bfp_hellaswag.py" \
+# python "$PROJECT_ROOT/awq/task_script_hellaswag.py" \
 #     --backend clone \
 #     --compute_dtype bf16 \
 #     --rope_cache_dtype bf16 \
@@ -30,7 +30,7 @@ mkdir -p "$LOG_DIR"
 # echo "================================================================"
 # echo "Config 2: BF16 Compute + BF16 RoPE + BF16 Softmax"
 # echo "================================================================"
-# python "$PROJECT_ROOT/awq/tinyllama_my_bfp_hellaswag.py" \
+# python "$PROJECT_ROOT/awq/task_script_hellaswag.py" \
 #     --backend clone \
 #     --compute_dtype bf16 \
 #     --rope_cache_dtype bf16 \
@@ -41,7 +41,7 @@ mkdir -p "$LOG_DIR"
 # echo "================================================================"
 # echo "Config 3: FP32 Compute + BF16 RoPE + FP32 Softmax"
 # echo "================================================================"
-# python "$PROJECT_ROOT/awq/tinyllama_my_bfp_hellaswag.py" \
+# python "$PROJECT_ROOT/awq/task_script_hellaswag.py" \
 #     --backend clone \
 #     --compute_dtype fp32 \
 #     --rope_cache_dtype bf16 \
@@ -53,7 +53,7 @@ mkdir -p "$LOG_DIR"
 # echo "================================================================"
 # echo "Config 4: BF16 Compute + FP32 RoPE + FP32 Softmax"
 # echo "================================================================"
-# python "$PROJECT_ROOT/awq/tinyllama_my_bfp_hellaswag.py" \
+# python "$PROJECT_ROOT/awq/task_script_hellaswag.py" \
 #     --backend clone \
 #     --compute_dtype bf16 \
 #     --rope_cache_dtype fp32 \
@@ -65,7 +65,7 @@ mkdir -p "$LOG_DIR"
 # echo "================================================================"
 # echo "Config 5: FP32 Compute + FP32 RoPE + FP32 Softmax (Max Precision)"
 # echo "================================================================"
-# python "$PROJECT_ROOT/awq/tinyllama_my_bfp_hellaswag.py" \
+# python "$PROJECT_ROOT/awq/task_script_hellaswag.py" \
 #     --backend clone \
 #     --compute_dtype fp32 \
 #     --rope_cache_dtype fp32 \
@@ -77,7 +77,7 @@ mkdir -p "$LOG_DIR"
 # echo "================================================================"
 # echo "Config 6: HuggingFace Reference (Ground Truth)"
 # echo "================================================================"
-# python "$PROJECT_ROOT/awq/tinyllama_my_bfp_hellaswag.py" \
+# python "$PROJECT_ROOT/awq/task_script_hellaswag.py" \
 #     --backend huggingface \
 #     | tee "$LOG_DIR/config6_huggingface_reference.log"
 
@@ -86,7 +86,7 @@ mkdir -p "$LOG_DIR"
 # echo "================================================================"
 # echo "Config 7: Custom Backend (default policy)"
 # echo "================================================================"
-# python "$PROJECT_ROOT/awq/tinyllama_my_bfp_hellaswag.py" \
+# python "$PROJECT_ROOT/awq/task_script_hellaswag.py" \
 #     --backend custom \
 #     --precision_policy default \
 #     | tee "$LOG_DIR/config7_custom_default.log"
@@ -96,7 +96,7 @@ mkdir -p "$LOG_DIR"
 # echo "================================================================"
 # echo "Config 8: Custom Backend (bf16 policy)"
 # echo "================================================================"
-# python "$PROJECT_ROOT/awq/tinyllama_my_bfp_hellaswag.py" \
+# python "$PROJECT_ROOT/awq/task_script_hellaswag.py" \
 #     --backend custom \
 #     --precision_policy bf16 \
 #     | tee "$LOG_DIR/config8_custom_bf16.log"
@@ -125,7 +125,7 @@ for MPATH in "${AWQ_MODELS[@]}"; do
     echo "----------------------------------------------------------------"
     echo "Evaluating AWQ model: $BASENAME (backend=huggingface)"
     echo "----------------------------------------------------------------"
-    python "$PROJECT_ROOT/awq/tinyllama_my_bfp_hellaswag.py" \
+    python "$PROJECT_ROOT/awq/task_script_hellaswag.py" \
             --backend custom \
             --model_path "$MPATH" \
             | tee "$LOG_FILE"
