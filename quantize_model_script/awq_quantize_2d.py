@@ -192,9 +192,12 @@ def main():
         if not args.dry_run:
             output_dir = f"{model_path}-awq2d-quantized-b{args.block_height}x{args.block_width}-m{m}-k{args.top_k}"
             os.makedirs(output_dir, exist_ok=True)
-            model_copy.save_pretrained(output_dir)
+            
+            # Convert to bf16 to save disk space
+            model_copy = model_copy.to(torch.bfloat16)
+            model_copy.save_pretrained(output_dir, torch_dtype=torch.bfloat16)
             tokenizer.save_pretrained(output_dir)
-            print(f"Quantized model saved to: {output_dir}")
+            print(f"Quantized model saved to: {output_dir} (bf16 format)")
         else:
             print("Dry run complete; not saving model.")
 

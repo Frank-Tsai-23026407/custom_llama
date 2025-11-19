@@ -54,8 +54,8 @@ This short guide will walk you through quantizing the TinyLlama model and evalua
 First, clone the repository and set up the environment:
 
 ```bash
-git clone <your-repository-url>
-cd llama-quantization-explorer
+git clone git@github.com:Frank-Tsai-23026407/custom_llama.git
+cd custom_llama
 
 # Create a Conda environment
 conda create -n llama-env python=3.11

@@ -220,9 +220,12 @@ def main():
             print("Saving quantized model...")
             output_dir = f"{model_path}-awq-quantized-mix-precision-b{args.block_size}-m{m}"
             os.makedirs(output_dir, exist_ok=True)
-            temp_model.save_pretrained(output_dir)
+            
+            # Convert to bf16 to save disk space
+            temp_model = temp_model.to(torch.bfloat16)
+            temp_model.save_pretrained(output_dir, torch_dtype=torch.bfloat16)
             tokenizer.save_pretrained(output_dir)
-            print(f"Quantized model saved to: {output_dir}")
+            print(f"Quantized model saved to: {output_dir} (bf16 format)")
         else:
             print("Dry run complete; not saving model.")
 

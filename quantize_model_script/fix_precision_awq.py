@@ -112,9 +112,12 @@ def quantize_model(model_path, dataset_name, dataset_config, num_samples, block_
     print("Saving quantized model...")
     output_dir = f"{model_path}-awq-quantized-fix-precision-b{block_size}-m{mantissa_bits}"
     os.makedirs(output_dir, exist_ok=True)
-    model.save_pretrained(output_dir)
+    
+    # Convert to bf16 to save disk space
+    model = model.to(torch.bfloat16)
+    model.save_pretrained(output_dir, torch_dtype=torch.bfloat16)
     tokenizer.save_pretrained(output_dir)
-    print(f"Quantized model saved to: {output_dir}")
+    print(f"Quantized model saved to: {output_dir} (bf16 format)")
 
 def main():
     """Main entry point for the AWQ fixed-precision quantization script.
@@ -203,9 +206,12 @@ def main():
         if not args.dry_run:
             output_dir = f"{model_path}-awq-quantized-fix-precision-b{args.block_size}-m{m}"
             os.makedirs(output_dir, exist_ok=True)
-            model_copy.save_pretrained(output_dir)
+            
+            # Convert to bf16 to save disk space
+            model_copy = model_copy.to(torch.bfloat16)
+            model_copy.save_pretrained(output_dir, torch_dtype=torch.bfloat16)
             tokenizer.save_pretrained(output_dir)
-            print(f"Quantized model saved to: {output_dir}")
+            print(f"Quantized model saved to: {output_dir} (bf16 format)")
         else:
             print("Dry run complete; not saving model.")
 
