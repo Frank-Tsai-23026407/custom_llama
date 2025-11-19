@@ -18,7 +18,7 @@
 
 ## ⚠️ CRITICAL: Runtime Only
 
-**DO NOT save quantized BFP models (AWQ model can still be stored)** - Apply at runtime, store only BF16 base models
+**DO NOT save quantized models** - Apply at runtime, store only BF16 base models
 
 ```python
 model = AutoModelForCausalLM.from_pretrained(path, torch_dtype=torch.bfloat16)
