@@ -12,18 +12,18 @@ from quantize_model_script.activation_aware_weight_quantization import awq_quant
 
 
 def resolve_model_path(model: str) -> str:
-    """
-    Resolves a preset model keyword to its full path or returns the path if it exists.
+    """Resolves a model alias to a full path or returns a given path.
 
-    This function supports preset keywords for commonly used models, making it easier
-    to specify model paths. If the provided string is not a preset, it is assumed to
-    be a direct path to the model.
+    This function provides a convenient way to refer to commonly used models with
+    short aliases (e.g., "tinyllama") instead of typing the full path. If the
+    provided `model` string does not match a preset, it is assumed to be a valid
+    path and is returned as is.
 
     Args:
-        model (str): The model keyword or path.
+        model (str): The model alias or a direct path to the model directory.
 
     Returns:
-        str: The resolved full path to the model.
+        str: The resolved, absolute path to the model directory.
     """
     # Workspace-relative presets
     ws_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
@@ -37,21 +37,25 @@ def resolve_model_path(model: str) -> str:
     return model
 
 def quantize_model(model_path, dataset_name, dataset_config, num_samples, block_size, mantissa_bits, device="auto"):
-    """
-    Quantizes a model using Activation-aware Weight Quantization (AWQ).
+    """Applies fixed-precision AWQ to a language model.
 
-    This function loads a pre-trained model, collects activations using a calibration dataset,
-    and then applies AWQ to quantize the model's linear layers. The quantized model is
-    saved to a new directory.
+    This function orchestrates the end-to-end quantization process. It performs the
+    following steps:
+    1.  Loads the pretrained model and tokenizer from the specified path.
+    2.  Loads and preprocesses a calibration dataset.
+    3.  Registers forward hooks on all linear layers to capture input activations.
+    4.  Runs a forward pass with the calibration data to collect these activations.
+    5.  Applies the AWQ algorithm to each linear layer using the captured activations.
+    6.  Saves the newly quantized model and its tokenizer to a new directory.
 
     Args:
-        model_path (str): The path to the pre-trained model to be quantized.
-        dataset_name (str): The name of the dataset to use for calibration (e.g., "wikitext").
+        model_path (str): The path to the pretrained model to be quantized.
+        dataset_name (str): The name of the Hugging Face dataset for calibration (e.g., "wikitext").
         dataset_config (str): The specific configuration of the dataset to use.
-        num_samples (int): The number of samples from the dataset to use for calibration.
-        block_size (int): The block size to be used for block floating-point (BFP) quantization.
+        num_samples (int): The number of samples to use from the calibration dataset.
+        block_size (int): The block size for Block Floating-Point (BFP) quantization.
         mantissa_bits (int): The number of mantissa bits for BFP quantization.
-        device (str, optional): The device to run the quantization on ("auto", "cpu", "cuda").
+        device (str, optional): The device to perform quantization on ('auto', 'cpu', 'cuda').
             Defaults to "auto".
     """
     # Resolve device
@@ -113,12 +117,16 @@ def quantize_model(model_path, dataset_name, dataset_config, num_samples, block_
     print(f"Quantized model saved to: {output_dir}")
 
 def main():
-    """
-    The main entry point for the AWQ fix-precision quantization script.
+    """Main entry point for the AWQ fixed-precision quantization script.
 
-    This function parses command-line arguments, loads the model and dataset, and then
-    iterates through a list of mantissa bit settings, applying AWQ quantization for each
-    setting and saving the resulting models.
+    This function serves as the command-line interface for the quantization
+    workflow. It parses user arguments for model selection, dataset configuration,
+    and quantization parameters.
+
+    The script performs a single forward pass to collect activations and then
+    iterates through a user-specified list of mantissa bit settings. For each
+    setting, it creates a fresh copy of the model, applies AWQ, and saves the
+    result, allowing for efficient sweeps over different precision levels.
     """
     parser = argparse.ArgumentParser(description="AWQ Fix-Precision Quantization CLI")
     parser.add_argument("--model", type=str, default="llama-3.2-1b",

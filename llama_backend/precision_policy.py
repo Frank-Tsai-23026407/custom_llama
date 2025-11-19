@@ -3,28 +3,29 @@ import torch
 
 
 class PrecisionPolicy:
-    """Configuration for controlling compute dtypes in attention and FFN.
-    
-    Parameters
-    ----------
-    attn_matmul_dtype : torch.dtype or None
-        Dtype for Q/K/V projections and attention matmuls (QK^T, AV).
-        If None, uses the tensor's intrinsic dtype.
-    attn_softmax_dtype : torch.dtype or None
-        Dtype for softmax computation (scores -> probabilities).
-        If None, uses attention scores dtype.
-    ffn_matmul_dtype : torch.dtype or None
-        Dtype for feed-forward network linear layers.
-        If None, uses the tensor's intrinsic dtype.
-    rope_compute_dtype : torch.dtype or None
-        Dtype used internally in RoPE (sin/cos computation).
-        If None, uses float32.
-    stable_softmax : bool
-        If True, subtracts max before softmax for numerical stability.
-    name : str
-        Label for this policy.
+    """A configuration for controlling compute dtypes in transformer operations.
+
+    This class defines a policy for specifying the `torch.dtype` to be used for
+    different parts of a transformer block, such as attention matrix multiplications,
+    softmax, and feed-forward network computations. This allows for fine-grained
+    control over performance and numerical precision.
+
+    Attributes:
+        attn_matmul_dtype (torch.dtype or None): The dtype for Q/K/V projections
+            and attention matrix multiplications (QK^T, AV). If None, the tensor's
+            intrinsic dtype is used.
+        attn_softmax_dtype (torch.dtype or None): The dtype for the softmax
+            computation. If None, the attention scores' dtype is used.
+        ffn_matmul_dtype (torch.dtype or None): The dtype for the linear layers
+            in the feed-forward network. If None, the tensor's intrinsic dtype
+            is used.
+        rope_compute_dtype (torch.dtype or None): The dtype for internal RoPE
+            (sin/cos) computations. Defaults to `torch.bfloat16`.
+        stable_softmax (bool): If True, subtracts the maximum value from the
+            attention scores before the softmax for numerical stability.
+        name (str): A descriptive name for the policy.
     """
-    
+
     def __init__(self,
                  attn_matmul_dtype=None,
                  attn_softmax_dtype=None,
@@ -41,7 +42,14 @@ class PrecisionPolicy:
     
     @staticmethod
     def default():
-        """Preserve existing behavior: rely on tensor intrinsic dtypes."""
+        """Creates a policy that preserves the intrinsic dtypes of tensors.
+
+        This policy does not force any dtype conversions, making it suitable for
+        debugging or maintaining the original behavior of a model.
+
+        Returns:
+            PrecisionPolicy: A policy with all dtype settings set to None.
+        """
         return PrecisionPolicy(
             attn_matmul_dtype=None,
             attn_softmax_dtype=None,
@@ -53,7 +61,15 @@ class PrecisionPolicy:
     
     @staticmethod
     def match_hf():
-        """Match HuggingFace behavior: compute attention/FFN in bfloat16."""
+        """Creates a policy to match Hugging Face's bfloat16 behavior.
+
+        This policy sets all major computation dtypes to `torch.bfloat16`, which
+        is a common configuration for modern Hugging Face models to achieve good
+        performance on compatible hardware.
+
+        Returns:
+            PrecisionPolicy: A policy configured for bfloat16 computation.
+        """
         return PrecisionPolicy(
             attn_matmul_dtype=torch.bfloat16,
             attn_softmax_dtype=torch.bfloat16,
@@ -65,7 +81,14 @@ class PrecisionPolicy:
     
     @staticmethod
     def bf16_end_to_end():
-        """Force all operations to bfloat16."""
+        """Creates a policy that forces all operations to bfloat16.
+
+        This is a strict policy that ensures all transformer computations are
+        performed in `torch.bfloat16` for maximum performance on supported GPUs.
+
+        Returns:
+            PrecisionPolicy: A policy with all dtypes set to `torch.bfloat16`.
+        """
         return PrecisionPolicy(
             attn_matmul_dtype=torch.bfloat16,
             attn_softmax_dtype=torch.bfloat16,
@@ -84,19 +107,24 @@ class PrecisionPolicy:
 
 
 def resolve_policy(policy):
-    """Convert policy specification to PrecisionPolicy instance.
-    
-    Parameters
-    ----------
-    policy : None, str, or PrecisionPolicy
-        - None or "default": use default policy
-        - "match_hf" or "hf" or "float32": use HF-matching policy
-        - "bf16" or "bfloat16": use bf16 end-to-end policy
-        - PrecisionPolicy instance: return as-is
-    
-    Returns
-    -------
-    PrecisionPolicy
+    """Resolves a flexible policy input into a PrecisionPolicy instance.
+
+    This utility function allows users to specify a precision policy in multiple
+    ways: as a string alias (e.g., "match_hf", "bf16"), as a `PrecisionPolicy`
+    object, or as `None` to get the default policy.
+
+    Args:
+        policy (None, str, or PrecisionPolicy): The policy to resolve.
+            - If `None` or "default", returns `PrecisionPolicy.default()`.
+            - If a string alias, returns the corresponding static policy.
+            - If a `PrecisionPolicy` instance, returns it directly.
+
+    Returns:
+        PrecisionPolicy: The resolved `PrecisionPolicy` object.
+
+    Raises:
+        ValueError: If the policy string is unknown.
+        TypeError: If the policy is of an unsupported type.
     """
     if policy is None:
         return PrecisionPolicy.default()
