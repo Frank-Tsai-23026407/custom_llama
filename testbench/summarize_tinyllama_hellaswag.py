@@ -140,20 +140,27 @@ def write_markdown(summary, out_md: str):
     lines.append("# TinyLlama HellaSwag Evaluation Summary\n")
     
     for model_type in sorted(summary.keys()):
+        # Collect all rows for the current model_type to sort them later
+        table_rows = []
+        for block_shape in sorted(summary[model_type].keys()):
+            for mantissa in sorted(summary[model_type][block_shape].keys(), key=int):
+                metrics = summary[model_type][block_shape][mantissa]
+                acc = metrics.get("acc", 0.0)
+                acc_norm = metrics.get("acc_norm", 0.0)
+                table_rows.append((block_shape, mantissa, acc, acc_norm))
+
+        # Sort rows by acc_norm in descending order
+        table_rows.sort(key=lambda row: row[3], reverse=True)
+
+        # Append sorted rows to the markdown output
         lines.append(f"## {model_type}\n")
         lines.append("| Block Shape | Mantissa | Accuracy (acc) | Accuracy (acc_norm) |")
         lines.append("| --- | --- | --- | --- |")
         
-        for block_shape in sorted(summary[model_type].keys()):
-            for mantissa in sorted(summary[model_type][block_shape].keys()):
-                metrics = summary[model_type][block_shape][mantissa]
-                acc = metrics.get("acc", "")
-                acc_norm = metrics.get("acc_norm", "")
-                acc_str = f"{acc:.4f}" if isinstance(acc, float) else ""
-                acc_norm_str = f"{acc_norm:.4f}" if isinstance(acc_norm, float) else ""
-                lines.append(
-                    f"| {block_shape} | {mantissa} | {acc_str} | {acc_norm_str} |"
-                )
+        for block_shape, mantissa, acc, acc_norm in table_rows:
+            acc_str = f"{acc:.4f}" if isinstance(acc, float) else ""
+            acc_norm_str = f"{acc_norm:.4f}" if isinstance(acc_norm, float) else ""
+            lines.append(f"| {block_shape} | {mantissa} | {acc_str} | {acc_norm_str} |")
         lines.append("")
     
     with open(out_md, "w", encoding="utf-8") as f:
