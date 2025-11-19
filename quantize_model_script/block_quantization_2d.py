@@ -88,12 +88,20 @@ def block_floating_point_quantize_2d(weight: torch.Tensor, block_height: int, bl
     return reconstructed_weight
 
 
-def awq_quantize_2d(weight: torch.Tensor, activation: torch.Tensor, block_height: int, block_width: int, mantissa_bits: int, top_k: int = 16) -> torch.Tensor:
+def awq_mix_precision_quantize_2d(weight: torch.Tensor, activation: torch.Tensor, block_height: int, block_width: int, mantissa_bits: int, top_k: int = 16) -> torch.Tensor:
     """
-    Performs activation-aware weight quantization with 2D blocks.
+    Performs mix-precision activation-aware weight quantization with 2D blocks.
     
-    For each 2D block, identifies the top_k most salient weights based on activation magnitudes
-    and applies different quantization strategies.
+    Mix-precision: Identifies the top_k most salient weights based on activation magnitudes
+    and preserves them in full floating-point (FP32) precision. The remaining weights are
+    quantized using standard BFP.
+    
+    Top-K Selection:
+        - Per 2D block: Select top-k individual ENTRIES (elements) with highest salience
+        - NOT per-row or per-column, but within the entire flattened block
+        - These k entries can be scattered across different rows/columns in the block
+        - Example: For a 16×16 block with top_k=16, we select the 16 most salient
+          elements out of 256 total elements in that block
     
     Args:
         weight (torch.Tensor): The weight tensor (2D).
@@ -101,10 +109,12 @@ def awq_quantize_2d(weight: torch.Tensor, activation: torch.Tensor, block_height
         block_height (int): The height of each 2D block.
         block_width (int): The width of each 2D block.
         mantissa_bits (int): The number of mantissa bits for BFP quantization.
-        top_k (int): The number of salient weights to preserve per block (default: 16).
+        top_k (int): The number of salient weight ENTRIES to preserve in FP32 per block.
+                     These entries can be in different rows/columns within the block.
+                     Default: 16 (e.g., 16 out of 256 for a 16×16 block = 6.25%)
     
     Returns:
-        torch.Tensor: The quantized and de-quantized weight tensor.
+        torch.Tensor: The quantized weight tensor with mix-precision (FP32 + BFP).
     """
     if weight.dim() != 2:
         raise ValueError(f"Expected 2D weight tensor, got {weight.dim()}D")
@@ -160,10 +170,20 @@ def awq_quantize_2d(weight: torch.Tensor, activation: torch.Tensor, block_height
     salience = torch.abs(weighted_blocks)  # Shape: (total_blocks, block_size)
     
     # Get top_k indices for each block
+    # IMPORTANT: top_k is applied per block, selecting k individual ENTRIES
+    # within the flattened block (not per row or per column)
+    # 
+    # Example with block_height=4, block_width=4, top_k=2:
+    #   Block has 16 elements total
+    #   We select the 2 elements with highest salience
+    #   These 2 elements can be at any position within the 4×4 block
+    #   (e.g., position [0,1] and position [3,2])
     block_size = block_height * block_width
     k = min(top_k, block_size)  # Ensure k doesn't exceed block size
     
-    # Get top-k values and indices
+    # Get top-k values and indices (dim=1 means per-block)
+    # topk_indices shape: (total_blocks, k)
+    # Each row contains k indices into the flattened block
     topk_salience, topk_indices = torch.topk(salience, k, dim=1)
     
     # 5. Apply standard BFP quantization to all weights
@@ -197,6 +217,70 @@ def awq_quantize_2d(weight: torch.Tensor, activation: torch.Tensor, block_height
         reconstructed_weight = reconstructed_weight[:out_features, :in_features]
     
     return reconstructed_weight
+
+
+def awq_fix_precision_quantize_2d(weight: torch.Tensor, activation: torch.Tensor, block_height: int, block_width: int, mantissa_bits: int) -> torch.Tensor:
+    """
+    Performs fix-precision activation-aware weight quantization with 2D blocks.
+    
+    Fix-precision: Uses scaling factors based on activation magnitudes to reduce quantization
+    error for salient weights. All weights (including salient ones) are still represented in
+    BFP format, but the scaling protects important weights during quantization.
+    
+    The process:
+    1. Calculate per-input-feature importance from activations
+    2. Scale weights UP by importance (W_scaled = W * s)
+    3. Apply standard BFP quantization to scaled weights
+    4. Scale quantized weights back DOWN (W_final = Q(W_scaled) / s)
+    
+    This effectively allocates more quantization precision to important weights.
+    
+    Args:
+        weight (torch.Tensor): The weight tensor (2D).
+        activation (torch.Tensor): The input activations (batch, seq_len, in_features).
+        block_height (int): The height of each 2D block.
+        block_width (int): The width of each 2D block.
+        mantissa_bits (int): The number of mantissa bits for BFP quantization.
+    
+    Returns:
+        torch.Tensor: The quantized and de-quantized weight tensor (all in BFP).
+    """
+    if weight.dim() != 2:
+        raise ValueError(f"Expected 2D weight tensor, got {weight.dim()}D")
+    
+    epsilon = 1e-9
+    
+    # 1. Calculate per-input-feature importance from activations
+    if activation.dim() == 3:
+        activation = activation.reshape(-1, activation.shape[-1])
+    
+    # Calculate the mean absolute value for each input feature dimension
+    importance_scores = torch.abs(activation).mean(dim=0)  # Shape: (in_features,)
+    
+    # Ensure importance scores are on the same device as weights
+    importance_scores = importance_scores.to(weight.device)
+    
+    # 2. Scale weights UP by importance (W_scaled = W * s)
+    # Weight matrix is (out_features, in_features)
+    # Broadcast importance_scores across rows
+    scaled_weight = weight * importance_scores.unsqueeze(0)
+    
+    # 3. Apply standard 2D BFP quantization to scaled weights
+    quantized_scaled_weight = block_floating_point_quantize_2d(
+        scaled_weight,
+        block_height=block_height,
+        block_width=block_width,
+        mantissa_bits=mantissa_bits
+    )
+    
+    # 4. Scale quantized weights back DOWN (W_final = Q(W_scaled) / s)
+    reconstructed_weight = quantized_scaled_weight / (importance_scores.unsqueeze(0) + epsilon)
+    
+    return reconstructed_weight
+
+
+# Backward compatibility alias
+awq_quantize_2d = awq_mix_precision_quantize_2d
 
 
 if __name__ == '__main__':
@@ -248,7 +332,7 @@ if __name__ == '__main__':
     print(f"  Max absolute value: {torch.max(torch.abs(original_block)).item():.4f}")
     print(f"  Block MSE: {torch.mean((original_block - quantized_block) ** 2).item():.6e}")
     
-    # Example 2: AWQ with 2D blocks
+    # Example 2: AWQ with 2D blocks (Fix-Precision vs Mix-Precision)
     print("\n" + "=" * 70)
     print("2. Testing AWQ with 2D blocks")
     print("=" * 70)
@@ -261,29 +345,14 @@ if __name__ == '__main__':
     BLOCK_HEIGHT = 16
     BLOCK_WIDTH = 16
     MANTISSA_BITS = 3
-    TOP_K = 16  # Number of salient weights per block
+    TOP_K = 16  # Number of salient weights per block (for mix-precision)
     
     print(f"\nWeight Shape: {small_weight.shape}")
     print(f"Activation Shape: {activations.shape}")
     print(f"Block Size: {BLOCK_HEIGHT}x{BLOCK_WIDTH}")
     print(f"Mantissa Bits: {MANTISSA_BITS}")
-    print(f"Top-K Salient Weights per Block: {TOP_K}")
     
-    # Apply AWQ quantization
-    quantized_awq = awq_quantize_2d(
-        small_weight,
-        activations,
-        block_height=BLOCK_HEIGHT,
-        block_width=BLOCK_WIDTH,
-        mantissa_bits=MANTISSA_BITS,
-        top_k=TOP_K
-    )
-    
-    # Calculate MSE
-    mse_awq = torch.mean((small_weight - quantized_awq) ** 2)
-    print(f"\nMean Squared Error (MSE) with AWQ: {mse_awq.item():.6e}")
-    
-    # Compare with BFP only (without AWQ)
+    # Baseline: BFP only (without AWQ)
     quantized_bfp = block_floating_point_quantize_2d(
         small_weight,
         block_height=BLOCK_HEIGHT,
@@ -291,8 +360,41 @@ if __name__ == '__main__':
         mantissa_bits=MANTISSA_BITS
     )
     mse_bfp = torch.mean((small_weight - quantized_bfp) ** 2)
-    print(f"Mean Squared Error (MSE) with BFP only: {mse_bfp.item():.6e}")
-    print(f"AWQ Improvement: {((mse_bfp - mse_awq) / mse_bfp * 100).item():.2f}%")
+    
+    # AWQ Fix-Precision: Uses scaling factors, all weights in BFP
+    print(f"\n--- Fix-Precision AWQ (scaling-based, all BFP) ---")
+    quantized_awq_fix = awq_fix_precision_quantize_2d(
+        small_weight,
+        activations,
+        block_height=BLOCK_HEIGHT,
+        block_width=BLOCK_WIDTH,
+        mantissa_bits=MANTISSA_BITS
+    )
+    mse_awq_fix = torch.mean((small_weight - quantized_awq_fix) ** 2)
+    
+    # AWQ Mix-Precision: Top-K weights in FP32, rest in BFP
+    print(f"\n--- Mix-Precision AWQ (top-{TOP_K} in FP32, rest BFP) ---")
+    quantized_awq_mix = awq_mix_precision_quantize_2d(
+        small_weight,
+        activations,
+        block_height=BLOCK_HEIGHT,
+        block_width=BLOCK_WIDTH,
+        mantissa_bits=MANTISSA_BITS,
+        top_k=TOP_K
+    )
+    mse_awq_mix = torch.mean((small_weight - quantized_awq_mix) ** 2)
+    
+    # Print comparison
+    print("\n" + "=" * 70)
+    print("Quantization Method Comparison:")
+    print("=" * 70)
+    print(f"BFP only (baseline):           MSE = {mse_bfp.item():.6e}")
+    print(f"AWQ Fix-Precision (scaling):   MSE = {mse_awq_fix.item():.6e}  ({((mse_bfp - mse_awq_fix) / mse_bfp * 100).item():+.2f}%)")
+    print(f"AWQ Mix-Precision (FP32+BFP):  MSE = {mse_awq_mix.item():.6e}  ({((mse_bfp - mse_awq_mix) / mse_bfp * 100).item():+.2f}%)")
+    print("=" * 70)
+    print("Note:")
+    print("  - Fix-Precision: All weights in BFP, uses scaling to protect salient weights")
+    print("  - Mix-Precision: Top-K salient weights in FP32, rest in BFP")
     
     print("\n" + "=" * 70)
     print("Testing complete!")
