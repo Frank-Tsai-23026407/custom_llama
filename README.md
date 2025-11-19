@@ -1,31 +1,37 @@
-# Custom TinyLlama Implementation
+# Llama Quantization Explorer: A PyTorch-Based Framework for Model Compression Research
 
-This project is a from-scratch implementation of the Llama architecture in PyTorch, with a primary focus on exploring, implementing, and evaluating advanced weight quantization techniques. The repository provides a comprehensive toolkit for quantizing language models, running evaluations on various benchmarks, and analyzing the performance of different precision settings.
+This repository provides a from-scratch, PyTorch-based implementation of the Llama architecture, designed specifically for research and development in language model quantization. It offers a comprehensive and modular toolkit for applying, evaluating, and analyzing advanced compression techniques like Activation-Aware Weight Quantization (AWQ). Whether you are a researcher exploring new quantization algorithms or a developer looking to optimize language models, this framework provides the tools you need for deep, fine-grained analysis.
 
-## How It Works
+## Core Components
 
-The core of this repository is a custom Llama implementation that allows for fine-grained control over the model's execution. This is complemented by a suite of tools for quantization and evaluation, enabling a deep analysis of the trade-offs between model size, performance, and accuracy.
+The framework is built on three pillars: a customizable backend, a powerful quantization toolkit, and a rigorous evaluation testbench.
 
-### Custom Backend
+### 1. Custom Llama Backend
 
-The `llama_backend` directory contains the core Llama implementation, which is designed to be highly modular and customizable. The custom backend allows for experimentation with different precision policies and execution strategies, providing a platform for research and development in language model optimization.
+Located in the `llama_backend` directory, the custom backend is a pure PyTorch implementation of the Llama model. Its modular design and functional components (e.g., attention, RMSNorm) allow for easy modification and experimentation. Key features include:
+- **Multiple Backends**: Seamlessly switch between a `'custom'` backend for experimentation, a `'huggingface'` backend for bit-perfect reference, and a `'clone'` backend for debugging.
+- **Precision Policies**: A `PrecisionPolicy` class gives you fine-grained control over the data types used in different parts of the model, such as matrix multiplications and softmax computations.
 
-### Quantization
+### 2. Advanced Quantization Toolkit
 
-The `quantize_model_script` directory contains scripts for applying Activation-Aware Weight Quantization (AWQ) to the model. These scripts allow for both fixed and mixed-precision quantization, and can be easily extended to support other quantization techniques.
+The `quantize_model_script` directory houses a suite of scripts for applying state-of-the-art quantization techniques. The centerpiece is a from-scratch implementation of **Activation-Aware Weight Quantization (AWQ)**, which intelligently protects salient weights from quantization errors. The toolkit supports:
+- **Fixed-Precision AWQ**: Apply uniform quantization with varying bit depths.
+- **Mixed-Precision AWQ**: Explore strategies where different layers or blocks use different precision levels.
+- **Block Floating-Point (BFP)**: A highly configurable BFP implementation serves as the underlying quantization format.
 
-### Evaluation
+### 3. Rigorous Evaluation Testbench
 
-The `testbench` directory provides a comprehensive suite of evaluation scripts for benchmarking the performance of the quantized models. These scripts support a variety of popular language model evaluation tasks, and can be used to compare the performance of the custom implementation against the original Hugging Face model.
+The `testbench` provides a comprehensive suite of scripts for evaluating the performance of quantized models on standard academic benchmarks, including HellaSwag, ARC, BoolQ, and more. This allows for a thorough analysis of the trade-offs between model compression and task accuracy.
 
-## Key Features
+## Key Features at a Glance
 
-- **Custom Llama Backend**: A hand-coded Llama model (`llama_my.py`) built from the ground up in PyTorch.
-- **Advanced Quantization**: Implementation of Activation-Aware Weight Quantization (AWQ) with support for both fixed and mixed-precision strategies.
-- **Flexible Precision Control**: A `PrecisionPolicy` class to easily manage dtypes for computation, RoPE cache, and softmax operations.
-- **Comprehensive Evaluation Suite**: Scripts to benchmark model performance on tasks like HellaSwag, ARC, BoolQ, and more.
-- **Comparative Analysis**: Easily compare the custom implementation against Hugging Face's transformer implementation and a "clone" backend.
-- **Extensive Experimentation**: Includes numerous pre-quantized AWQ models with varying block sizes and mantissa bits, along with scripts to reproduce them.
+- **Pure PyTorch Llama**: A custom Llama implementation (`llama_my.py`) for maximum flexibility.
+- **Activation-Aware Weight Quantization (AWQ)**: A from-scratch implementation supporting both fixed and mixed-precision strategies.
+- **Multiple Backends**: Compare your custom models against Hugging Face and a lightweight "clone" for parity checking.
+- **Flexible Precision Control**: Use `PrecisionPolicy` to control dtypes for RoPE, softmax, and matrix multiplications.
+- **Comprehensive Evaluation Suite**: Benchmark performance on tasks like HellaSwag, ARC, BoolQ, and more.
+- **Extensive Model Zoo**: Comes with dozens of pre-quantized AWQ models with varying configurations.
+- **Reproducibility**: All quantization and evaluation scripts are designed to be easily run and modified.
 
 ## Project Structure
 
@@ -39,48 +45,63 @@ The `testbench` directory provides a comprehensive suite of evaluation scripts f
 └───requirements.txt    # Project dependencies
 ```
 
-## Setup
+## Getting Started: A Quick Example
 
-### 1. Clone the Repository
+This short guide will walk you through quantizing the TinyLlama model and evaluating it on the HellaSwag benchmark.
+
+### Step 1: Setup and Installation
+
+First, clone the repository and set up the environment:
 
 ```bash
 git clone <your-repository-url>
-cd custom_llama
-```
+cd llama-quantization-explorer
 
-### 2. Install Dependencies
-
-Ensure you have a Python environment with PyTorch `2.1.0` or newer. Then, install the required packages:
-
-```bash
+# Create a Conda environment
 conda create -n llama-env python=3.11
 conda activate llama-env
+
+# Install dependencies
 pip install -r requirements.txt
 ```
 
-**Note**: This project requires:
-- PyTorch 2.3.1 with CUDA 12.1
-- Triton 2.3.1 (compatible with PyTorch 2.3.x)
-- bitsandbytes 0.43.3 (with GPU support)
+**System Requirements**:
+- PyTorch 2.3.1+ with CUDA 12.1+
+- A CUDA-compatible GPU is highly recommended for reasonable performance.
 
-#### Verify Installation
+### Step 2: Quantize the Model
 
-```bash
-python -c "import torch, bitsandbytes as bnb, triton; print(f'Torch: {torch.__version__}, CUDA: {torch.version.cuda}, Available: {torch.cuda.is_available()}'); print(f'bitsandbytes: {bnb.__version__}'); print(f'Triton: {triton.__version__}')"
-```
-
-### 3. Install lm-evaluation-harness for Ground Truth
-
-To compare your model's performance against established benchmarks, you need to install `lm-evaluation-harness`. This is used as the ground truth for evaluations.
+Next, run the fixed-precision AWQ script. We'll quantize the `TinyLlama` model with a block size of 64 and 4 mantissa bits.
 
 ```bash
-git clone https://github.com/EleutherAI/lm-evaluation-harness.git
-cd lm-evaluation-harness
-pip install -e .
-cd ..
+python quantize_model_script/fix_precision_awq.py \
+    --model tinyllama \
+    --block-size 64 \
+    --mantissa-bits 4
 ```
 
-## Usage
+This will:
+1. Load the base `TinyLlama_1.1v` model.
+2. Use the WikiText dataset for calibration.
+3. Apply AWQ and save the quantized model to `model/tinyllama/TinyLlama_1.1v-awq-quantized-fix-precision-b64-m4/`.
+
+### Step 3: Evaluate the Quantized Model
+
+Now, evaluate the model's performance on the HellaSwag benchmark using the custom backend.
+
+```bash
+# Define the path to your quantized model
+export MODEL_CHECKPOINT="model/tinyllama/TinyLlama_1.1v-awq-quantized-fix-precision-b64-m4"
+
+# Run the evaluation script
+python testbench/task_script_hellaswag.py \
+    --backend custom \
+    --model_path "$MODEL_CHECKPOINT"
+```
+
+The script will output the model's accuracy. You can compare this to the original model's performance or experiment with different quantization settings.
+
+## Detailed Usage
 
 The project is structured around two main workflows: quantizing a model and evaluating its performance.
 

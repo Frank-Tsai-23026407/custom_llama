@@ -2,19 +2,30 @@ import torch
 import math
 
 def block_floating_point_quantize(weight: torch.Tensor, block_size: int, mantissa_bits: int) -> torch.Tensor:
-    """
-    Quantizes a weight matrix using Block Floating Point (BFP) quantization.
+    """Quantizes a weight tensor using the Block Floating-Point (BFP) format.
 
-    BFP quantizes the elements in a block by finding the maximum absolute value
-    (which determines a shared exponent) and quantizing the mantissas.
+    BFP is a quantization scheme that groups tensor elements into blocks. Within each
+    block, a single, shared exponent is used for all elements, while each element
+    retains its own quantized mantissa. This approach provides a good balance between
+    compression and numerical precision, especially for tensors with a wide dynamic range.
+
+    The quantization process for each block is as follows:
+    1.  Find the maximum absolute value in the block.
+    2.  Calculate a shared exponent `E` based on this maximum value.
+    3.  Compute a scaling factor `S = 2^E`.
+    4.  Normalize the block elements by dividing by `S` to get floating-point mantissas.
+    5.  Linearly quantize these mantissas to a fixed number of bits.
+    6.  De-quantize the mantissas and multiply by `S` to reconstruct the block.
 
     Args:
-        weight (torch.Tensor): The input weight matrix (e.g., from a linear layer).
-        block_size (int): The number of elements in each block.
-        mantissa_bits (int): The number of bits used to quantize the mantissa.
+        weight (torch.Tensor): The input weight tensor to be quantized.
+        block_size (int): The number of elements to group into each quantization block.
+        mantissa_bits (int): The number of bits to use for representing the mantissa.
+            The sign bit is handled separately, so `mantissa_bits=4` would allow for
+            `2^(4-1)` positive levels.
 
     Returns:
-        torch.Tensor: The reconstructed (de-quantized) weight matrix.
+        torch.Tensor: The de-quantized weight tensor with the same shape as the input.
     """
     original_shape = weight.shape
     # Flatten the weight tensor for block processing
