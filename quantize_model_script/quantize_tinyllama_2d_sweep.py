@@ -178,7 +178,9 @@ def main():
                     print("Converting to bfloat16 for storage...")
                     model_copy = model_copy.to(torch.bfloat16)
                 
-                model_copy.save_pretrained(output_dir)
+                # Save with appropriate dtype parameter
+                dtype_map = {"float16": torch.float16, "bfloat16": torch.bfloat16, "float32": torch.float32}
+                model_copy.save_pretrained(output_dir, torch_dtype=dtype_map.get(args.save_dtype, torch.float32))
                 tokenizer.save_pretrained(output_dir)
                 print(f"Saved successfully (dtype: {args.save_dtype})!")
             else:

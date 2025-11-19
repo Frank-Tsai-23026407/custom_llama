@@ -74,9 +74,12 @@ def quantize_model(model_path, dataset_name, dataset_config, num_samples, block_
     print("Saving quantized model...")
     output_dir = f"{model_path}-awq-quantized-fix-precision-b{block_size}-m{mantissa_bits}"
     os.makedirs(output_dir, exist_ok=True)
-    model.save_pretrained(output_dir)
+    
+    # Convert to bf16 to save disk space
+    model = model.to(torch.bfloat16)
+    model.save_pretrained(output_dir, torch_dtype=torch.bfloat16)
     tokenizer.save_pretrained(output_dir)
-    print(f"Quantized model saved to: {output_dir}")
+    print(f"Quantized model saved to: {output_dir} (bf16 format)")
 
 if __name__ == '__main__':
     """

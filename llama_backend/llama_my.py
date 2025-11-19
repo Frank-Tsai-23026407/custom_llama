@@ -15,38 +15,30 @@ from .utils import *
 from llama_backend.clone.hf_clone import clone_forward_all
 
 class LlamaMyModel:
-    """
-    A custom Llama model implementation that allows for different backends and precision policies.
+    """A custom Llama model implementation for flexible backend and precision control.
 
-    This class provides a wrapper around a Hugging Face Llama model, allowing for customization
-    of the model's execution backend, precision policies, and other configurations. It supports
-    different backends like 'custom', 'huggingface', and 'clone' for model inference.
+    This class wraps a Hugging Face Llama model to enable experimentation with different
+    execution backends ('custom', 'huggingface', 'clone') and precision policies. It serves
+    as a primary interface for running inference, applying quantization, and comparing
+    performance against reference implementations.
 
-    Args:
-        model_name (str, optional): The name of the pre-trained model to load.
-            Defaults to "TinyLlama/TinyLlama_v1.1".
-        device (str, optional): The device to run the model on ('cpu' or 'cuda').
-            Defaults to 'cpu'.
-        stop_criteria (callable, optional): A function to determine when to stop generation.
-            Defaults to None.
-        dtype (torch.dtype, optional): The data type to use for the model's parameters.
-            Defaults to torch.float32.
-        apply_bfp (bool, optional): Whether to apply block floating-point quantization.
-            Defaults to False.
-        bfp_block_size (int, optional): The block size for block floating-point quantization.
-            Defaults to 16.
-        bfp_mantissa_bits (int, optional): The number of mantissa bits for BFP quantization.
-            Defaults to 4.
-        precision_policy (str or PrecisionPolicy, optional): The precision policy to use.
-            Defaults to None.
-        backend (str, optional): The backend to use for model inference ('custom', 'huggingface', 'clone').
-            Defaults to "custom".
-        rope_cache_dtype (torch.dtype, optional): The data type for the RoPE cache.
-            Defaults to None.
-        clone_compute_dtype (torch.dtype, optional): The compute data type for the 'clone' backend.
-            Defaults to None.
-        softmax_fp32 (bool, optional): Whether to use float32 for softmax computation.
-            Defaults to True.
+    Attributes:
+        device (torch.device): The device (e.g., 'cuda' or 'cpu') on which the model is loaded.
+        dtype (torch.dtype): The primary data type for the model's parameters.
+        tokenizer (AutoTokenizer): The tokenizer loaded from the pretrained model name.
+        model (AutoModelForCausalLM): The underlying Hugging Face model instance.
+        backend (str): The execution backend to use for the forward pass.
+        clone_compute_dtype (torch.dtype): The data type for computations in the 'clone' backend.
+        softmax_fp32 (bool): If True, forces softmax operations to run in float32.
+        precision_policy (PrecisionPolicy): The policy defining dtypes for different model parts.
+        num_layers (int): The number of transformer layers in the model.
+        num_heads (int): The number of attention heads.
+        num_kv_heads (int): The number of key/value heads for Grouped Query Attention.
+        rope_cache_dtype (torch.dtype): The data type for the RoPE sinusoidal caches.
+        head_dim (int): The dimensionality of each attention head.
+        rope_emb (HFRotaryEmbedding): The Rotary Positional Embedding module for the 'clone' backend.
+        attention_blocks (list): A list of custom `transfomer_block_with_kv_cache` modules.
+        stop_criteria (callable): A function to determine when to stop text generation.
     """
     def __init__(self, model_name="TinyLlama/TinyLlama_v1.1", device='cpu', stop_criteria=None, dtype=torch.float32,
                  apply_bfp=False, bfp_block_size=16, bfp_mantissa_bits=4,
@@ -54,6 +46,33 @@ class LlamaMyModel:
                  rope_cache_dtype: "torch.dtype|None" = None,
                  clone_compute_dtype: "torch.dtype|None" = None,
                  softmax_fp32: bool = True):
+        """Initializes the LlamaMyModel instance.
+
+        Args:
+            model_name (str, optional): The name of the pretrained Hugging Face model.
+                Defaults to "TinyLlama/TinyLlama_v1.1".
+            device (str, optional): The device to load the model onto ('cpu' or 'cuda').
+                Defaults to 'cpu'.
+            stop_criteria (callable, optional): A function for stopping text generation.
+                Defaults to None.
+            dtype (torch.dtype, optional): The primary data type for model parameters.
+                Defaults to torch.float32.
+            apply_bfp (bool, optional): If True, applies Block Floating-Point quantization
+                to the model weights. Defaults to False.
+            bfp_block_size (int, optional): The block size for BFP quantization. Defaults to 16.
+            bfp_mantissa_bits (int, optional): The number of mantissa bits for BFP quantization.
+                Defaults to 4.
+            precision_policy (str or PrecisionPolicy, optional): The precision policy to apply.
+                Can be a string identifier or a PrecisionPolicy object. Defaults to None.
+            backend (str, optional): The execution backend ('custom', 'huggingface', 'clone').
+                Defaults to "custom".
+            rope_cache_dtype (torch.dtype, optional): The dtype for the RoPE cache in the
+                'clone' backend. If None, defaults to the main `dtype`.
+            clone_compute_dtype (torch.dtype, optional): The computation dtype for the 'clone'
+                backend. If None, defaults to the main `dtype`.
+            softmax_fp32 (bool, optional): Whether to cast softmax to float32 for stability.
+                Defaults to True.
+        """
         self.device = torch.device(device)
         self.dtype = dtype
         self.tokenizer = AutoTokenizer.from_pretrained(model_name)
@@ -121,20 +140,26 @@ class LlamaMyModel:
             self.model.get_output_embeddings().weight.data = block_floating_point_quantize(self.model.get_output_embeddings().weight.data, block_size=bfp_block_size, mantissa_bits=bfp_mantissa_bits)
             
     def single_step(self, inputs, return_latents=False):
-        """
-        Performs a single forward pass of the model.
+        """Performs a single forward pass through the model.
 
-        This method executes a single step of the model's forward pass, supporting different
-        backends for computation. It can optionally return the latent states of the model.
+        This method routes the input through the selected backend ('custom', 'huggingface',
+        or 'clone') to compute the logits. It is the core inference function for processing
+        a batch of token IDs. The method can optionally return intermediate hidden states
+        for debugging and analysis.
 
         Args:
-            inputs (dict): A dictionary containing the input tensors, such as 'input_ids'.
-            return_latents (bool, optional): Whether to return the latent states.
+            inputs (dict): A dictionary containing input tensors. Must include 'input_ids',
+                which is a tensor of token IDs with shape (batch_size, sequence_length).
+            return_latents (bool, optional): If True, the method returns a tuple containing
+                the logits and a list of hidden states from each transformer layer.
                 Defaults to False.
 
         Returns:
-            torch.Tensor or tuple: The output logits of the model. If `return_latents` is True,
-                it returns a tuple containing the logits and a list of latent states.
+            torch.Tensor or tuple:
+            - If `return_latents` is False, returns the output logits tensor of shape
+              (batch_size, sequence_length, vocab_size).
+            - If `return_latents` is True, returns a tuple `(logits, latents)`, where
+              `latents` is a list of hidden state tensors.
         """
         # Optional exact HF execution path for bit-exact parity
         if getattr(self, 'backend', 'custom') in ('huggingface','clone'):
@@ -244,11 +269,12 @@ class LlamaMyModel:
             return logits
     
     def reset_kv_cache(self):
-        """
-        Resets the key-value cache of the model.
+        """Resets the key-value cache for all attention blocks.
 
-        This method clears the key-value cache for each attention block, which is necessary
-        when starting a new generation sequence.
+        This method is essential for starting a new, independent generation sequence. It iterates
+        through each `transfomer_block_with_kv_cache` in the model and clears its stored
+        key and value caches, ensuring that there is no leakage of context from previous
+        generations.
         """
         for block in self.attention_blocks:
             block.k_cache = None
@@ -256,20 +282,26 @@ class LlamaMyModel:
             block.sequence_length = 0
             
     def generate(self, input_text, max_new_tokens=100):
-        """
-        Generates text based on a given input prompt.
+        """Generates a sequence of text given an input prompt.
 
-        This method generates a sequence of tokens based on the input text, using a greedy
-        decoding approach. The generation process continues until a stop criterion is met
-        or the maximum number of new tokens is generated.
+        This method implements a simple auto-regressive generation loop using greedy decoding.
+        It tokenizes the input text, then iteratively calls the model's forward pass to
+        predict the next token. The process continues until a stop criterion is met or
+        `max_new_tokens` are generated.
+
+        Note:
+            This is a basic implementation for demonstration and testing. For advanced use
+            cases, more sophisticated sampling methods (e.g., top-k, nucleus sampling)
+            and batching would be required.
 
         Args:
-            input_text (str): The input prompt for text generation.
+            input_text (str): The prompt to begin generation from.
             max_new_tokens (int, optional): The maximum number of new tokens to generate.
                 Defaults to 100.
 
         Returns:
-            torch.Tensor: A tensor containing the generated token IDs.
+            torch.Tensor: A tensor of shape (1, sequence_length) containing the token IDs
+                of the generated text, including the prompt.
         """
         input_ids = self.tokenizer([input_text], return_tensors="pt").input_ids.to(self.device)
         generated_ids = input_ids.tolist()[0]
@@ -316,12 +348,12 @@ class LlamaMyModel:
     
 
 def test():
-    """
-    Tests the custom Llama model implementation against the Hugging Face reference.
+    """Validates the custom Llama model implementation against the HF reference.
 
-    This function loads a TinyLlama model, runs a forward pass with both the custom
-    implementation and the original Hugging Face model, and compares the resulting logits
-    and latent states to ensure they are close.
+    This function performs a forward pass using both the `LlamaMyModel` with the 'custom'
+    backend and the original Hugging Face `AutoModelForCausalLM`. It then compares the
+    output logits and intermediate hidden states to ensure they are numerically close,
+    serving as a regression test for the custom backend's correctness.
     """
     # Step 1: Load the tinyllama model & example input
     example_input = '\n<|user|>:hello</s>\n<|assistant|>:'

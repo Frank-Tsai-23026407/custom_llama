@@ -98,7 +98,7 @@ def main():
     # Save
     print(f"\nSaving to {output_path}...")
     os.makedirs(output_path, exist_ok=True)
-    model.save_pretrained(output_path)
+    model.save_pretrained(output_path, torch_dtype=torch.bfloat16)
     tokenizer.save_pretrained(output_path)
     print("Saved successfully!")
     

@@ -9,28 +9,31 @@ from quantize_model_script.block_quantization import block_floating_point_quanti
 from quantize_model_script.activation_aware_weight_quantization import get_weight_scaling_factor
 
 def mix_precision_mixed_precision_bfp(
-    weight: torch.Tensor, 
-    scales: torch.Tensor, 
-    block_size: int = 128, 
+    weight: torch.Tensor,
+    scales: torch.Tensor,
+    block_size: int = 128,
     mantissa_bits: int = 4
 ) -> torch.Tensor:
-    """
-    Quantizes a weight matrix using a mix-precision mixed-precision BFP approach.
+    """Applies a mixed-precision BFP quantization strategy to a weight tensor.
 
-    For each block of weights, it identifies the weight corresponding to the
-    input feature with the highest activation magnitude (importance) and keeps
-    it in full floating-point precision. The rest of the weights in the block
-    are quantized using standard BFP.
+    This function implements a form of mixed-precision quantization where, within each
+    block of weights, one "salient" weight is kept in its original full precision,
+    while the remaining weights in the block are quantized using BFP.
+
+    The saliency of a weight is determined by the magnitude of its corresponding input
+    activation, which is provided by the `scales` tensor. The weight connected to the
+    input feature with the highest average activation is preserved. This technique aims
+    to protect the most influential weights from quantization error.
 
     Args:
-        weight (torch.Tensor): The input weight matrix of shape (out_features, in_features).
-        scales (torch.Tensor): A tensor of shape (1, in_features) representing the
-                               average magnitude (importance) of each input activation feature.
-        block_size (int): The number of elements in each quantization block.
-        mantissa_bits (int): The number of mantissa bits for BFP quantization.
+        weight (torch.Tensor): The 2D weight tensor of shape (out_features, in_features).
+        scales (torch.Tensor): A 2D tensor of shape (1, in_features) containing the
+            average activation magnitudes for each input feature.
+        block_size (int, optional): The size of the quantization blocks. Defaults to 128.
+        mantissa_bits (int, optional): The number of mantissa bits for BFP. Defaults to 4.
 
     Returns:
-        torch.Tensor: The reconstructed weight matrix with mixed precision.
+        torch.Tensor: The reconstructed weight tensor with mixed precision.
     """
     assert weight.dim() == 2, "Weight tensor must be 2D"
     assert scales.dim() == 2 and scales.shape[0] == 1, "Scales tensor must be 2D with shape (1, in_features)"
@@ -217,9 +220,12 @@ def main():
             print("Saving quantized model...")
             output_dir = f"{model_path}-awq-quantized-mix-precision-b{args.block_size}-m{m}"
             os.makedirs(output_dir, exist_ok=True)
-            temp_model.save_pretrained(output_dir)
+            
+            # Convert to bf16 to save disk space
+            temp_model = temp_model.to(torch.bfloat16)
+            temp_model.save_pretrained(output_dir, torch_dtype=torch.bfloat16)
             tokenizer.save_pretrained(output_dir)
-            print(f"Quantized model saved to: {output_dir}")
+            print(f"Quantized model saved to: {output_dir} (bf16 format)")
         else:
             print("Dry run complete; not saving model.")
 
