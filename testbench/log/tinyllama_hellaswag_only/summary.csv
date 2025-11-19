@@ -1,0 +1,6 @@
+model_type,block_shape,mantissa,acc,acc_norm
+awq_fix,128x1,4,0.3679,0.4872
+awq_fix,32x4,4,0.3769,0.4982
+awq_fix,32x4,5,0.4416,0.5916
+awq_fix,64x2,4,0.3784,0.5038
+awq_fix,64x2,5,0.4466,0.5979

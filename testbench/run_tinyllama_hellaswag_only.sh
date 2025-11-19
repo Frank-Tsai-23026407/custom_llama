@@ -28,6 +28,13 @@ for MODEL_PATH in "${MODEL_DIRS[@]}"; do
   safe_name=$(echo "$rel_path" | tr '/ ' '__')
   LOG_DIR="$BASE_LOG_DIR/$safe_name"
   mkdir -p "$LOG_DIR"
+  
+  # Check if a successful completion log already exists
+  if find "$LOG_DIR" -name "hellaswag.*.log" -type f -print0 2>/dev/null | xargs -0 grep -l "Accuracy (acc_norm):" 2>/dev/null | grep -q .; then
+    echo "✓ Skipping $MODEL_PATH - successful completion log already exists"
+    continue
+  fi
+  
   log_file="$LOG_DIR/hellaswag.$TS.log"
   echo "Running HellaSwag for $MODEL_PATH..."
   python testbench/task_script_hellaswag.py --backend custom --model_path "$MODEL_PATH" 2>&1 | tee "$log_file"
@@ -60,6 +67,13 @@ for mb in "${MANTISSA_BITS[@]}"; do
     label="bfp_runtime_${bh}x${bw}_m${mb}"
     log_dir="$RUNTIME_DIR/$label"
     mkdir -p "$log_dir"
+    
+    # Check if a successful completion log already exists
+    if find "$log_dir" -name "hellaswag.*.log" -type f -print0 2>/dev/null | xargs -0 grep -l "Accuracy (acc_norm):" 2>/dev/null | grep -q .; then
+      echo "✓ Skipping RUNTIME BFP 2D block ${bh}x${bw}, mantissa $mb - successful completion log already exists"
+      continue
+    fi
+    
     log_file="$log_dir/hellaswag.$TS.log"
     echo "Running RUNTIME BFP 2D HellaSwag: block ${bh}x${bw}, mantissa $mb..."
     python testbench/task_script_hellaswag_bfp2d_runtime.py \
