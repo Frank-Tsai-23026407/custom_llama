@@ -34,24 +34,133 @@ The `testbench` provides a comprehensive suite of scripts for evaluating the per
 - **Reproducibility**: All quantization and evaluation scripts are designed to be easily run and modified.
 
 ## Project Structure
+This document reflects the current repository layout and the purpose of the main folders and files.
+
+### Root
 
 ```
-/
-├───llama_backend/      # Core model implementations (custom, clone)
-├───quantize_model_script/ # Scripts for AWQ model quantization
-├───model/              # Pre-trained and quantized model checkpoints
-├───testbench/          # Evaluation scripts and benchmark results
-├───debug/              # Debugging and comparison utilities
-└───requirements.txt    # Project dependencies
+custom_llama/
+├── FILE_STRUCTURE.md
+├── SIMPLE_EVAL.md
+├── requirements.txt
+├── debug/
+├── docs/
+├── llama_backend/
+├── model/
+├── model_analysis/
+├── quantize_model_script/
+└── testbench/
 ```
 
-## Getting Started: A Quick Example
+### `llama_backend/` — Core backend
 
-This short guide will walk you through quantizing the TinyLlama model and evaluating it on the HellaSwag benchmark.
+Custom TinyLlama backend with precision policy and optional clone backend.
 
-### Step 1: Setup and Installation
+```
+llama_backend/
+├── USAGE.md
+├── llama_my.py
+├── precision_policy.py
+├── utils.py
+├── clone/
+│   ├── clone_backend.py
+│   ├── hf_clone.py
+│   └── hf_rope.py
+└── custom/               # (empty)
+```
 
-First, clone the repository and set up the environment:
+### `debug/` — Debug and tests
+
+Small scripts used to validate attention, precision policies, and ground-truth comparisons.
+
+```
+debug/
+├── compare_qkv_attention.py
+├── test_precision_policy.py
+└── tinyllama_gt.py
+```
+
+### `docs/` — Documentation
+
+Notes and comparisons relevant to the backends and debugging.
+
+```
+docs/
+├── backend_comparison.md
+├── custom_vs_clone_code_comparison.md
+├── debug_files_inventory.md
+└── git_submodule_guide.md
+```
+
+### `model/` — Models and variants
+
+Base model and multiple AWQ-quantized variants (mix/fix precision across block sizes and magnitude settings).
+
+```
+model/
+├── TinyLlama_1.1v/
+├── TinyLlama_1.1v-awq-quantized/
+├── TinyLlama_1.1v-awq-quantized-mix-precision-b{32,64,128}-m{2,3,4,5}/
+└── TinyLlama_1.1v-awq-quantized-fix-precision-b{32,64,128}-m{2,3,4,5}/
+```
+
+### `model_analysis/` — Plots and analysis
+
+```
+model_analysis/
+├── plot_element_contribution/
+└── plot_weight/
+```
+
+### `quantize_model_script/` — Quantization scripts
+
+AWQ and block quantization utilities.
+
+```
+quantize_model_script/
+├── activation_aware_weight_quantization.py
+├── block_quantization.py
+├── fix_precision_awq_tinyllama.py
+└── mix_precision_awq_tinyllama.py
+```
+
+### `testbench/` — AWQ experiments and runs
+
+Docs, run scripts, and evaluation helpers for AWQ and BFP runs.
+
+```
+testbench/
+├── AWQ.md
+├── AWQ_INTEGRATION_COMPLETE.txt
+├── AWQ_MODELS_HELLASWAG.md
+├── NEW_FILES_SUMMARY.md
+├── PRECISION_SWEEP_SUMMARY.md
+├── README_PRECISION_SWEEP.md
+├── awq/
+├── log/
+├── run_all.sh
+├── run_block_floating_point.sh
+├── run_dynamic_awq_experiments.sh
+├── run_precision_sweep_hellaswag.sh
+├── run_precision_sweep_quick.sh
+├── run_static_awq_evaluation.sh
+├── run_static_awq_experiments.sh
+├── test_awq_integration.sh
+├── task_script_arc_c.py
+├── task_script_arc_e.py
+├── task_script_boolq.py
+├── task_script_hellaswag.py
+├── task_script_obqa.py
+├── task_script_piqa.py
+├── task_script_winogrande.py
+└── validate_modifications.sh
+```
+
+## Getting Started
+
+### Environment Setup
+
+First, clone the repository and set up the environment.
 
 ```bash
 git clone git@github.com:Frank-Tsai-23026407/custom_llama.git
@@ -65,47 +174,20 @@ conda activate llama-env
 pip install -r requirements.txt
 ```
 
-**System Requirements**:
-- PyTorch 2.3.1+ with CUDA 12.1+
-- A CUDA-compatible GPU is highly recommended for reasonable performance.
+**Critical dependencies**:
+- PyTorch 2.3.1 with CUDA 12.1 (not 2.4.x - Triton version conflict)
+- Triton 2.3.1 (required by bitsandbytes 0.43.3)
+- bitsandbytes 0.43.3 (GPU-enabled version with proper CUDA runtime)
 
-### Step 2: Quantize the Model
-
-Next, run the fixed-precision AWQ script. We'll quantize the `TinyLlama` model with a block size of 64 and 4 mantissa bits.
-
+**Installation**:
 ```bash
-python quantize_model_script/fix_precision_awq.py \
-    --model tinyllama \
-    --block-size 64 \
-    --mantissa-bits 4
+# Recommended: Use PyTorch CUDA wheels
+pip install --extra-index-url https://download.pytorch.org/whl/cu121 \
+  torch==2.3.1 torchvision==0.18.1 torchaudio==2.3.1
+pip install -r requirements.txt
 ```
 
-This will:
-1. Load the base `TinyLlama_1.1v` model.
-2. Use the WikiText dataset for calibration.
-3. Apply AWQ and save the quantized model to `model/tinyllama/TinyLlama_1.1v-awq-quantized-fix-precision-b64-m4/`.
-
-### Step 3: Evaluate the Quantized Model
-
-Now, evaluate the model's performance on the HellaSwag benchmark using the custom backend.
-
-```bash
-# Define the path to your quantized model
-export MODEL_CHECKPOINT="model/tinyllama/TinyLlama_1.1v-awq-quantized-fix-precision-b64-m4"
-
-# Run the evaluation script
-python testbench/task_script_hellaswag.py \
-    --backend custom \
-    --model_path "$MODEL_CHECKPOINT"
-```
-
-The script will output the model's accuracy. You can compare this to the original model's performance or experiment with different quantization settings.
-
-## Detailed Usage
-
-The project is structured around two main workflows: quantizing a model and evaluating its performance.
-
-### 1. Model Quantization
+### Model Quantization
 
 You can generate quantized models using the scripts in `quantize_model_script/`. For example, to run fixed-precision AWQ on the base TinyLlama model:
 
@@ -119,32 +201,83 @@ This will:
 1. Load the base `TinyLlama_1.1v` model.
 2. Use the WikiText dataset for calibration.
 3. Apply AWQ with a block size of 64 and mantissa bits from 2 to 5.
-4. Save each quantized model to a new directory under `model/`, such as `model/tinyllama/TinyLlmam_1.1v-awq-quantized-fix-precision-b64-m2/`.
+4. Save each quantized model to a new directory under `model/`, such as `model/tinyllama/TinyLlama_1.1v-awq-quantized-fix-precision-b64-m2/`.
 
-### 2. Model Evaluation
+## Evaluation Guide
 
-The `testbench/` directory contains scripts to evaluate models on various benchmarks. For example, to run the HellaSwag benchmark on a quantized model:
+This guide shows how to run evaluations on TinyLlama models using two methods:
+1. **lm-evaluation-harness** (standard framework)
+2. **Custom evaluation scripts** (project-specific)
+
+### Method 1: Using `lm-evaluation-harness`
+
+#### Installation
 
 ```bash
-# Define the path to your quantized model
-MODEL_CHECKPOINT="model/tinyllama/TinyLlmam_1.1v-awq-quantized-fix-precision-b64-m2"
-
-# Run evaluation using the custom backend
-python testbench/task_script_hellaswag.py \
-    --backend custom \
-    --model_path "$MODEL_CHECKPOINT"
+git clone https://github.com/EleutherAI/lm-evaluation-harness
+cd lm-evaluation-harness
+pip install -e .
+cd ..
 ```
 
-The evaluation scripts offer several flags for detailed analysis:
-- `--backend`: Choose between `custom`, `clone`, or `huggingface`.
-- `--compute_dtype`: Set the computation precision (e.g., `bf16`, `fp32`).
-- `--rope_cache_dtype`: Set the RoPE cache precision.
-- `--softmax_fp32`: Use `fp32` for softmax calculations.
+#### Basic Usage
+
+To run a single task evaluation on 100 samples for a quick test:
+
+```bash
+lm_eval --model hf \
+    --model_args pretrained=TinyLlama/TinyLlama_v1.1 \
+    --tasks hellaswag \
+    --device cuda:0 \
+    --batch_size 8 \
+    --limit 100
+```
+
+#### Evaluate Quantized Models
+
+```bash
+# Mix-Precision AWQ (m5, b128)
+lm_eval --model hf \
+    --model_args pretrained=model/tinyllama/TinyLlama_1.1v-awq-quantized-mix-precision-b128-m5 \
+    --tasks hellaswag \
+    --device cuda:0 \
+    --batch_size 8
+```
+
+### Method 2: Using Custom Evaluation Scripts
+
+Custom scripts in the `testbench/` directory provide precision-aware evaluation with our custom backends.
+
+#### Basic HellaSwag Evaluation
+
+To run a quick test on 100 samples:
+```bash
+python testbench/task_script_hellaswag.py \
+    --model_path model/tinyllama/TinyLlama_1.1v \
+    --max_samples 100
+```
+
+#### Evaluate AWQ Quantized Models
+
+```bash
+# Mix-Precision AWQ (m5, 5-bit mantissa)
+python testbench/task_script_hellaswag.py \
+    --model_path model/tinyllama/TinyLlama_1.1v-awq-quantized-mix-precision-b128-m5
+
+# Fix-Precision AWQ (m5, 5-bit mantissa)
+python testbench/task_script_hellaswag.py \
+    --model_path model/tinyllama/TinyLlama_1.1v-awq-quantized-fix-precision-b128-m5
+```
+
+#### Batch Evaluation Scripts
 
 For a comprehensive evaluation across multiple precision settings and models, you can use the provided shell scripts:
 
 ```bash
-# Run a sweep across different AWQ models on HellaSwag
+# Run a quick sweep across different AWQ models (100 samples)
+bash testbench/run_precision_sweep_quick.sh
+
+# Run a full sweep on HellaSwag
 bash testbench/run_precision_sweep_hellaswag.sh
 ```
 
@@ -152,6 +285,15 @@ Results are logged to the `testbench/log/` directory. You can easily parse the a
 ```bash
 grep -h 'Accuracy (acc_norm):' testbench/log/precision_sweep/*.log
 ```
+
+### Comparison: `lm-eval` vs Custom Scripts
+
+*   **`lm-evaluation-harness`**:
+    *   **Pros**: Standardized, many tasks available, easy to compare with other models.
+    *   **Cons**: Less control over precision, harder to debug custom backends.
+*   **Custom Scripts**:
+    *   **Pros**: Full control over precision policies, supports custom backends, easier to debug.
+    *   **Cons**: Need to implement each task, less standardized.
 
 ## Models and Results
 
