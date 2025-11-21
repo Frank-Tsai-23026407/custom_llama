@@ -29,6 +29,8 @@ def main():
     parser.add_argument("--model_path", type=str, default="TinyLlama/TinyLlama_v1.1", help="Path or hub ID for the model to evaluate (e.g., model/llama-3.2-1b/Llama-3.2-1B)")
     parser.add_argument("--backend", type=str, default="custom", choices=["custom","huggingface","clone"], help="Execution backend for LlamaMyModel.")
     
+    parser.add_argument("--disable_tqdm", action="store_true", help="Disable tqdm progress bar.")
+    
     args = parser.parse_args()
 
     apply_bfp = args.bft
@@ -76,7 +78,18 @@ def main():
     
     # model created above via TU.setup_model_and_tokenizer
 
-    for batch in tqdm(data_loader, desc="Evaluating OpenBookQA"):
+    # Determine where to write tqdm output
+    tqdm_file = sys.stderr
+    if not args.disable_tqdm:
+        try:
+            # Try to open /dev/tty to write progress bar directly to terminal
+            # This bypasses 'tee' so it doesn't end up in the log file
+            tqdm_file = open('/dev/tty', 'w')
+        except Exception:
+            # Fallback to stderr if /dev/tty is not available (e.g. in some non-interactive environments)
+            pass
+
+    for batch in tqdm(data_loader, desc="Evaluating OpenBookQA", disable=args.disable_tqdm, file=tqdm_file):
         context = batch["context"][0]
         choices = [c[0] for c in batch["choices"]]
         true_label = batch["label"].item()

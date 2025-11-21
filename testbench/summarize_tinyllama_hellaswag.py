@@ -63,7 +63,7 @@ def parse_model_name(dir_name: str) -> tuple:
             return ("bfp_runtime", match.group(1), match.group(2))
     else:
         # Static model format: tinyllama_TinyLlama_1.1v-2d-comprehensive_awq_fix_block_128x1_mantissa_4
-        match = re.search(r"(awq_fix|awq_mix)_block_(\d+x\d+)_mantissa_(\d+)", dir_name)
+        match = re.search(r"(awq_fix|awq_mix|bfp)_block_(\d+x\d+)_mantissa_(\d+)", dir_name)
         if match:
             return (match.group(1), match.group(2), match.group(3))
     
@@ -143,7 +143,14 @@ def write_markdown(summary, out_md: str):
         # Collect all rows for the current model_type to sort them later
         table_rows = []
         for block_shape in sorted(summary[model_type].keys()):
-            for mantissa in sorted(summary[model_type][block_shape].keys(), key=int):
+            # Safe sort key for mantissa
+            def mantissa_key(m):
+                try:
+                    return int(m)
+                except ValueError:
+                    return 0
+
+            for mantissa in sorted(summary[model_type][block_shape].keys(), key=mantissa_key):
                 metrics = summary[model_type][block_shape][mantissa]
                 acc = metrics.get("acc", 0.0)
                 acc_norm = metrics.get("acc_norm", 0.0)

@@ -1,0 +1,3 @@
+Stderr isatty: False
+Stdout isatty: False
+Testing TQDM:   0%|          | 0/5 [00:00<?, ?it/s]Testing TQDM:  20%|██        | 1/5 [00:00<00:00,  9.99it/s]Testing TQDM:  40%|████      | 2/5 [00:00<00:00,  9.98it/s]Testing TQDM:  60%|██████    | 3/5 [00:00<00:00,  9.98it/s]Testing TQDM:  80%|████████  | 4/5 [00:00<00:00,  9.98it/s]Testing TQDM: 100%|██████████| 5/5 [00:00<00:00,  9.98it/s]Testing TQDM: 100%|██████████| 5/5 [00:00<00:00,  9.98it/s]
