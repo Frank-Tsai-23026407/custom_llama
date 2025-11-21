@@ -13,7 +13,8 @@ BASE_LOG_DIR="testbench/log/tinyllama_hellaswag_only"
 mkdir -p "$BASE_LOG_DIR"
 
 # Only search block shape configs under TinyLlama_1.1v-2d-comprehensive
-MODEL_ROOT="model/tinyllama/TinyLlama_1.1v-2d-comprehensive"
+# MODEL_ROOT="model/tinyllama/TinyLlama_1.1v-2d-comprehensive"
+MODEL_ROOT="model/tinyllama/TinyLlama_1.1v-quantized"
 
 mapfile -d '' -t MODEL_DIRS < <(find "$MODEL_ROOT" -mindepth 2 -maxdepth 2 -type d -print0)
 

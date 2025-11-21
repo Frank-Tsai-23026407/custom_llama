@@ -99,7 +99,7 @@ MANTISSA_BITS=(5 4)
 for block_size in "${BLOCK_SIZES[@]}"; do
     IFS=' ' read -r height width <<< "$block_size"
     for mantissa in "${MANTISSA_BITS[@]}"; do
-        echo "Testing: ${height}x${width}, mantissa=${mantissa}"
+        echo "Testing: ${height}x${width}, mantissa=${mantissa}" >&2
         
         python evaluate_with_runtime_quantization.py \
             --method bfp \
@@ -266,7 +266,7 @@ python quantize_tinyllama_comprehensive_2d.py \
 ### 論文實驗
 ```bash
 # 測試所有配置但不保存
-for config in configs:
+for config in configs;
     python evaluate_with_runtime_quantization.py $config
 done
 # 只保存結果 logs，不保存模型

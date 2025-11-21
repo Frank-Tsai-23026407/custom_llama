@@ -1,61 +1,35 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Quantize Llama-3.2-1B across modes and settings
-# Modes: BFP, Fix-Precision AWQ, Mix-Precision AWQ
-# Block sizes: 128, 64, 32
+# Quantize Llama-3.2-1B using unified model_quantization.py script
+# Supports: BFP, Fix-Precision AWQ, Mix-Precision AWQ
+# Block sizes: 128×1, 64×2, 32×4, 16×8, 8×16, 4×32, 2×64, 1×128
 # Mantissa bits: 5, 4, 3, 2
 
 MODEL="llama-3.2-1b"
-DEVICE="cuda"           # auto|cpu|cuda (used by AWQ scripts)
-NUM_SAMPLES=128          # calibration samples for AWQ
+NUM_SAMPLES=128
 DATASET="Salesforce/wikitext"
 DATASET_CONFIG="wikitext-103-raw-v1"
 
-BLOCK_SIZES=(128 64 32)
-MANTISSAS=(5 4 3 2)
+echo "[INFO] Starting comprehensive quantization for ${MODEL}"
+echo "======================================================================"
 
-echo "[INFO] Starting quantization sweep for ${MODEL}"
+# Navigate to script directory
+cd "$(dirname "$0")"
 
-# 1) Pure BFP quantization (no activations)
-for b in "${BLOCK_SIZES[@]}"; do
-  echo "[BFP] Block size=${b}"
-  python "$(dirname "$0")/bfp_quantize.py" \
+# Run unified quantization script with all methods
+python model_quantization.py \
     --model "${MODEL}" \
-    --block-size "${b}" \
-    --mantissa-bits "${MANTISSAS[@]}"
-  echo "[BFP] Completed block size=${b}"
-  echo
-done
-
-# 2) Fix-Precision AWQ (activation aware)
-for b in "${BLOCK_SIZES[@]}"; do
-  echo "[FIX-AWQ] Block size=${b}"
-  python "$(dirname "$0")/fix_precision_awq.py" \
-    --model "${MODEL}" \
+    --method all \
     --dataset "${DATASET}" \
     --dataset-config "${DATASET_CONFIG}" \
     --num-samples "${NUM_SAMPLES}" \
-    --block-size "${b}" \
-    --mantissa-bits "${MANTISSAS[@]}" \
-    --device "${DEVICE}"
-  echo "[FIX-AWQ] Completed block size=${b}"
-  echo
-done
+    --mantissa-bits 5 4 3 2 \
+    --top-k 16 \
+    --skip-generation-test \
+    "$@"
 
-# 3) Mix-Precision AWQ (activation aware)
-for b in "${BLOCK_SIZES[@]}"; do
-  echo "[MIX-AWQ] Block size=${b}"
-  python "$(dirname "$0")/mix_precision_awq.py" \
-    --model "${MODEL}" \
-    --dataset "${DATASET}" \
-    --dataset-config "${DATASET_CONFIG}" \
-    --num-samples "${NUM_SAMPLES}" \
-    --block-size "${b}" \
-    --mantissa-bits "${MANTISSAS[@]}" \
-    --device "${DEVICE}"
-  echo "[MIX-AWQ] Completed block size=${b}"
-  echo
-done
-
-echo "[INFO] All quantization sweeps completed."
+echo ""
+echo "======================================================================"
+echo "[INFO] All quantization configurations completed for ${MODEL}"
+echo "======================================================================"

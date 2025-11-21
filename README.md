@@ -2,6 +2,32 @@
 
 This repository provides a from-scratch, PyTorch-based implementation of the Llama architecture, designed specifically for research and development in language model quantization. It offers a comprehensive and modular toolkit for applying, evaluating, and analyzing advanced compression techniques like Activation-Aware Weight Quantization (AWQ). Whether you are a researcher exploring new quantization algorithms or a developer looking to optimize language models, this framework provides the tools you need for deep, fine-grained analysis.
 
+## Quick Start
+
+### Environment Setup
+
+1. **Create and activate conda environment:**
+   ```bash
+   conda create -n llama-env python=3.11
+   conda activate llama-env
+   ```
+
+2. **Install dependencies:**
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+3. **Set up local environment activation (optional):**
+   ```bash
+   # Copy the example activation script
+   cp activate_env.sh.example activate_env.sh
+   
+   # Activate environment quickly in new terminals
+   source activate_env.sh
+   ```
+   
+   Note: `activate_env.sh` is git-ignored for local customization.
+
 ## Core Components
 
 The framework is built on three pillars: a customizable backend, a powerful quantization toolkit, and a rigorous evaluation testbench.

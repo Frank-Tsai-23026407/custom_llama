@@ -18,11 +18,7 @@ import torch
 from datasets import load_dataset
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from quantize_model_script.block_quantization_2d import (
-    block_floating_point_quantize_2d,
-    awq_fix_precision_quantize_2d,
-    awq_mix_precision_quantize_2d
-)
+from quantize_model_script.runtime_quantizer import apply_runtime_quantization
 
 
 def resolve_model_path(model: str) -> str:
@@ -84,30 +80,14 @@ def collect_activations(model, tokenizer, dataset_name="Salesforce/wikitext",
 
 def quantize_model_bfp_2d(model, block_height: int, block_width: int, mantissa_bits: int):
     """Standard BFP 2D quantization (no activation awareness)."""
-    quantized_count = 0
-    
-    for name, module in model.named_modules():
-        if "lm_head" in name:
-            continue
-            
-        if isinstance(module, torch.nn.Linear):
-            original_weight = module.weight.data.clone()
-            
-            q_weight = block_floating_point_quantize_2d(
-                module.weight.data, 
-                block_height=block_height, 
-                block_width=block_width,
-                mantissa_bits=mantissa_bits
-            )
-            
-            module.weight.data = q_weight
-            quantized_count += 1
-            
-            mse = torch.mean((original_weight - q_weight) ** 2).item()
-            print(f"  [{quantized_count:3d}] {name:50s} MSE: {mse:.6e}")
-    
-    print(f"\nQuantized {quantized_count} layers")
-    return model
+    return apply_runtime_quantization(
+        model, 
+        method="bfp",
+        block_height=block_height,
+        block_width=block_width,
+        mantissa_bits=mantissa_bits,
+        verbose=True
+    )
 
 
 def quantize_model_awq_2d(model, activations, block_height: int, block_width: int, 
@@ -119,57 +99,25 @@ def quantize_model_awq_2d(model, activations, block_height: int, block_width: in
         method: "fix" for fix-precision (scaling-based, all weights in BFP), 
                 "mix" for mix-precision (top-k in FP32, rest in BFP)
     """
-    quantized_count = 0
-    
-    for name, module in model.named_modules():
-        if "lm_head" in name:
-            continue
-            
-        if isinstance(module, torch.nn.Linear):
-            if name not in activations:
-                print(f"  Skipping {name} (no activation)")
-                continue
-            
-            original_weight = module.weight.data.clone()
-            activation = activations[name]
-            
-            if method == "fix":
-                # Fix-precision: scaling-based, all weights in BFP
-                q_weight = awq_fix_precision_quantize_2d(
-                    module.weight.data,
-                    activation,
-                    block_height=block_height,
-                    block_width=block_width,
-                    mantissa_bits=mantissa_bits
-                )
-            else:  # "mix"
-                # Mix-precision: top-k weights in FP32, rest in BFP
-                q_weight = awq_mix_precision_quantize_2d(
-                    module.weight.data,
-                    activation,
-                    block_height=block_height,
-                    block_width=block_width,
-                    mantissa_bits=mantissa_bits,
-                    top_k=top_k
-                )
-            
-            module.weight.data = q_weight
-            quantized_count += 1
-            
-            mse = torch.mean((original_weight - q_weight) ** 2).item()
-            print(f"  [{quantized_count:3d}] {name:50s} MSE: {mse:.6e}")
-    
-    print(f"\nQuantized {quantized_count} layers")
-    return model
+    return apply_runtime_quantization(
+        model,
+        method=f"awq-{method}",
+        block_height=block_height,
+        block_width=block_width,
+        mantissa_bits=mantissa_bits,
+        top_k=top_k,
+        activations=activations,
+        verbose=True
+    )
 
 
 def main():
-    # Quantization configurations
-    BLOCK_SIZES = [
+    # Default quantization configurations
+    DEFAULT_BLOCK_SIZES = [
         (128, 1), (64, 2), (32, 4), (16, 8),
         (8, 16), (4, 32), (2, 64), (1, 128),
     ]
-    MANTISSA_BITS = [5, 4]
+    DEFAULT_MANTISSA_BITS = [5, 4]
     
     parser = argparse.ArgumentParser(
         description="Comprehensive TinyLlama 2D Quantization (BFP, AWQ, Mix/Fix-Precision)"
@@ -182,8 +130,12 @@ def main():
                         help="Quantization method: bfp, awq-fix, awq-mix, or all (default: all)")
     parser.add_argument("--output-dir", type=str, default=None,
                         help="Base output directory")
-    parser.add_argument("--top-k", type=int, default=16,
-                        help="Top-k salient weights to preserve for AWQ (default: 16)")
+    parser.add_argument("--block-size", type=int, nargs="+", default=None,
+                        help="Block size: scalar for 1D (e.g., --block-size 128) or two values for 2D (e.g., --block-size 32 16). If not specified, uses all default configurations.")
+    parser.add_argument("--mantissa-bits", type=int, nargs="+", default=None,
+                        help="Mantissa bits to use (e.g., --mantissa-bits 4 5). If not specified, uses default [5, 4].")
+    parser.add_argument("--top-k", type=int, default=None,
+                        help="Top-k salient weights to preserve for AWQ mix-precision. If not specified, defaults to block_width (one input channel row per block).")
     parser.add_argument("--dataset", type=str, default="Salesforce/wikitext",
                         help="Calibration dataset for AWQ (default: Salesforce/wikitext)")
     parser.add_argument("--dataset-config", type=str, default="wikitext-103-raw-v1",
@@ -201,6 +153,27 @@ def main():
     
     args = parser.parse_args()
     
+    # Parse block size configuration
+    if args.block_size:
+        if len(args.block_size) == 1:
+            # 1D block size: convert to 2D with width=1
+            BLOCK_SIZES = [(args.block_size[0], 1)]
+        elif len(args.block_size) == 2:
+            # 2D block size: (height, width)
+            BLOCK_SIZES = [(args.block_size[0], args.block_size[1])]
+        else:
+            print("ERROR: --block-size must be either 1 value (1D) or 2 values (2D)")
+            sys.exit(1)
+    else:
+        # Use default configurations
+        BLOCK_SIZES = DEFAULT_BLOCK_SIZES
+    
+    # Parse mantissa bits
+    if args.mantissa_bits:
+        MANTISSA_BITS = args.mantissa_bits
+    else:
+        MANTISSA_BITS = DEFAULT_MANTISSA_BITS
+    
     # Resolve model path
     model_path = resolve_model_path(args.model)
     print(f"Model path: {model_path}")
@@ -209,7 +182,7 @@ def main():
     if args.output_dir:
         output_base = args.output_dir
     else:
-        output_base = f"{model_path}-2d-comprehensive"
+        output_base = f"{model_path}-comprehensive"
     
     print(f"Output base directory: {output_base}")
     
@@ -318,6 +291,26 @@ def main():
                     dtype_map = {"float16": torch.float16, "bfloat16": torch.bfloat16, "float32": torch.float32}
                     model_copy.save_pretrained(output_dir, torch_dtype=dtype_map.get(args.save_dtype, torch.float32))
                     tokenizer.save_pretrained(output_dir)
+                    # Write metadata for reproducibility
+                    metadata = {
+                        "method": method,
+                        "block_height": block_height,
+                        "block_width": block_width,
+                        "mantissa_bits": mantissa_bits,
+                        "top_k": args.top_k if method == "awq-mix" else None,
+                        "save_dtype": args.save_dtype,
+                        "dataset": args.dataset if ("awq" in method) else None,
+                        "dataset_config": args.dataset_config if ("awq" in method) else None,
+                        "num_samples": args.num_samples if ("awq" in method) else None,
+                        "source_model_path": model_path,
+                        "script": "quantize_tinyllama_comprehensive_2d.py",
+                    }
+                    try:
+                        import json
+                        with open(os.path.join(output_dir, "metadata.json"), "w") as mf:
+                            json.dump(metadata, mf, indent=2)
+                    except Exception as e:
+                        print(f"Warning: failed to write metadata.json: {e}")
                     print(f"Saved successfully (dtype: {args.save_dtype})!")
                 else:
                     print("\n[DRY RUN] Skipping save")

@@ -125,8 +125,8 @@ for m in 4 5; do
   for b in "16 16" "32 4"; do
     python evaluate_with_runtime_quantization.py \
       --method bfp \
-      --block-height ${b%% *} \
-      --block-width ${b##* } \
+      --block-height ${b%% *}
+      --block-width ${b##* }
       --mantissa-bits $m
   done
 done

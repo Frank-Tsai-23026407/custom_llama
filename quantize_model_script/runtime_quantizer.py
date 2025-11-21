@@ -27,7 +27,7 @@ import sys
 import os
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from quantize_model_script.block_quantization_2d import (
+from quantize_model_script.block_quantization import (
     block_floating_point_quantize_2d,
     awq_fix_precision_quantize_2d,
     awq_mix_precision_quantize_2d
@@ -38,14 +38,15 @@ class QuantizationConfig:
     """Configuration for runtime quantization."""
     
     def __init__(self, method="bfp", block_height=16, block_width=16, 
-                 mantissa_bits=4, top_k=16, activations=None):
+                 mantissa_bits=4, top_k=None, activations=None):
         """
         Args:
             method: Quantization method ("bfp", "awq-fix", "awq-mix")
             block_height: Height of 2D blocks
             block_width: Width of 2D blocks
             mantissa_bits: Number of mantissa bits for BFP
-            top_k: Number of salient weights for mix-precision (only for awq-mix)
+            top_k: Number of salient weights for mix-precision (only for awq-mix).
+                   If None (default), uses block_width (one input channel row per block).
             activations: Pre-collected activations (only for AWQ methods)
         """
         self.method = method

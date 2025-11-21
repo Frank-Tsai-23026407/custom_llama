@@ -8,3 +8,7 @@ __pycache__/
 # Logs
 *.log
 awq/log/mine.txt
+
+# Local environment activation script (user-specific)
+activate_env.sh
+.cshrc
