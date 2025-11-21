@@ -117,7 +117,7 @@ def main():
         (128, 1), (64, 2), (32, 4), (16, 8),
         (8, 16), (4, 32), (2, 64), (1, 128),
     ]
-    DEFAULT_MANTISSA_BITS = [5, 4]
+    DEFAULT_MANTISSA_BITS = [5, 4, 3]
     
     parser = argparse.ArgumentParser(
         description="Comprehensive TinyLlama 2D Quantization (BFP, AWQ, Mix/Fix-Precision)"

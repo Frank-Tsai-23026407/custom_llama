@@ -326,7 +326,7 @@ def awq_mix_precision_quantize_2d(weight: torch.Tensor, activation: torch.Tensor
     return reconstructed_weight
 
 
-def awq_fix_precision_quantize_2d(weight: torch.Tensor, activation: torch.Tensor, block_height: int, block_width: int, mantissa_bits: int) -> torch.Tensor:
+def awq_fix_precision_quantize_2d(weight: torch.Tensor, activation: torch.Tensor, block_height: int, block_width: int, mantissa_bits: int, alpha: float = 1.0) -> torch.Tensor:
     """
     Performs fix-precision activation-aware weight quantization with 2D blocks.
     
@@ -336,7 +336,7 @@ def awq_fix_precision_quantize_2d(weight: torch.Tensor, activation: torch.Tensor
     
     The process:
     1. Calculate per-input-feature importance from activations
-    2. Scale weights UP by importance (W_scaled = W * s)
+    2. Scale weights UP by importance (W_scaled = W * s), where s = s_X^alpha (AWQ paper)
     3. Apply standard BFP quantization to scaled weights
     4. Scale quantized weights back DOWN (W_final = Q(W_scaled) / s)
     
@@ -348,6 +348,9 @@ def awq_fix_precision_quantize_2d(weight: torch.Tensor, activation: torch.Tensor
         block_height (int): The height of each 2D block.
         block_width (int): The width of each 2D block.
         mantissa_bits (int): The number of mantissa bits for BFP quantization.
+        alpha (float): Scaling exponent (AWQ paper: s = s_X^alpha). Default 1.0.
+                       alpha=0 means no scaling, alpha=1 means full activation scaling.
+                       Optimal alpha can be found via grid search.
     
     Returns:
         torch.Tensor: The quantized and de-quantized weight tensor (all in BFP).
@@ -361,16 +364,17 @@ def awq_fix_precision_quantize_2d(weight: torch.Tensor, activation: torch.Tensor
     if activation.dim() == 3:
         activation = activation.reshape(-1, activation.shape[-1])
     
-    # Calculate the mean absolute value for each input feature dimension
+    # Calculate the mean absolute value for each input feature dimension (s_X)
     importance_scores = torch.abs(activation).mean(dim=0)  # Shape: (in_features,)
     
     # Ensure importance scores are on the same device as weights
     importance_scores = importance_scores.to(weight.device)
     
-    # 2. Scale weights UP by importance (W_scaled = W * s)
+    # 2. Scale weights UP by importance with alpha exponent (s = s_X^alpha)
     # Weight matrix is (out_features, in_features)
     # Broadcast importance_scores across rows
-    scaled_weight = weight * importance_scores.unsqueeze(0)
+    scaling_factor = torch.pow(importance_scores + epsilon, alpha)
+    scaled_weight = weight * scaling_factor.unsqueeze(0)
     
     # 3. Apply standard 2D BFP quantization to scaled weights
     quantized_scaled_weight = block_floating_point_quantize_2d(
@@ -381,9 +385,130 @@ def awq_fix_precision_quantize_2d(weight: torch.Tensor, activation: torch.Tensor
     )
     
     # 4. Scale quantized weights back DOWN (W_final = Q(W_scaled) / s)
-    reconstructed_weight = quantized_scaled_weight / (importance_scores.unsqueeze(0) + epsilon)
+    reconstructed_weight = quantized_scaled_weight / (scaling_factor.unsqueeze(0) + epsilon)
     
     return reconstructed_weight
+
+
+def search_best_alpha_2d(weight: torch.Tensor, activation: torch.Tensor, 
+                         block_height: int, block_width: int, mantissa_bits: int,
+                         alpha_min: float = 0.0, alpha_max: float = 1.0, 
+                         alpha_steps: int = 20) -> tuple[float, float]:
+    """
+    Search for the optimal alpha value for AWQ fix-precision quantization.
+    
+    Performs grid search over alpha values in [alpha_min, alpha_max] to find
+    the alpha that minimizes output difference loss (AWQ paper approach).
+    
+    Loss function: L(s) = ∥Q(W·diag(s))(diag(s)⁻¹·X) − WX∥
+    where:
+    - W is the original weight
+    - s is the scaling factor (s = s_X^alpha)
+    - X is the input activation
+    - Q() is the quantization function
+    
+    Args:
+        weight (torch.Tensor): The weight tensor (2D).
+        activation (torch.Tensor): The input activations (batch, seq_len, in_features).
+        block_height (int): The height of each 2D block.
+        block_width (int): The width of each 2D block.
+        mantissa_bits (int): The number of mantissa bits for BFP quantization.
+        alpha_min (float): Minimum alpha value. Default 0.0 (no scaling).
+        alpha_max (float): Maximum alpha value. Default 1.0 (full activation scaling).
+        alpha_steps (int): Number of grid search steps. Default 20.
+    
+    Returns:
+        tuple[float, float]: (best_alpha, min_loss)
+            best_alpha: The optimal alpha value found
+            min_loss: The output difference loss achieved with best_alpha
+    """
+    best_alpha = alpha_min
+    min_loss = float('inf')
+    
+    # Reshape activation if needed
+    if activation.dim() == 3:
+        activation_2d = activation.reshape(-1, activation.shape[-1])  # (batch*seq, in_features)
+    else:
+        activation_2d = activation
+    
+    # Calculate original output: WX
+    original_output = torch.matmul(weight, activation_2d.T)  # (out_features, batch*seq)
+    
+    # Generate alpha values to test
+    if alpha_steps == 1:
+        alpha_values = [alpha_min]
+    else:
+        alpha_values = torch.linspace(alpha_min, alpha_max, alpha_steps).tolist()
+    
+    # Grid search
+    for alpha in alpha_values:
+        # Quantize with this alpha
+        quantized_weight = awq_fix_precision_quantize_2d(
+            weight, activation, 
+            block_height, block_width, mantissa_bits,
+            alpha=alpha
+        )
+        
+        # Calculate quantized output: Q(W·diag(s))(diag(s)⁻¹·X)
+        # This is equivalent to: quantized_weight @ activation
+        # because the quantize function already handles the scaling/descaling
+        quantized_output = torch.matmul(quantized_weight, activation_2d.T)  # (out_features, batch*seq)
+        
+        # Calculate output difference loss
+        loss = torch.mean((original_output - quantized_output) ** 2).item()
+        
+        # Track best
+        if loss < min_loss:
+            min_loss = loss
+            best_alpha = alpha
+    
+    return best_alpha, min_loss
+
+
+
+def awq_fix_precision_quantize_2d_auto(weight: torch.Tensor, activation: torch.Tensor,
+                                       block_height: int, block_width: int, mantissa_bits: int,
+                                       alpha_min: float = 0.0, alpha_max: float = 1.0,
+                                       alpha_steps: int = 20,
+                                       return_alpha: bool = False) -> torch.Tensor | tuple[torch.Tensor, float]:
+    """
+    AWQ fix-precision quantization with automatic alpha optimization via grid search.
+    
+    This is a wrapper around awq_fix_precision_quantize_2d that automatically
+    finds the optimal alpha value using grid search to minimize output difference loss.
+    
+    Args:
+        weight (torch.Tensor): The weight tensor (2D).
+        activation (torch.Tensor): The input activations (batch, seq_len, in_features).
+        block_height (int): The height of each 2D block.
+        block_width (int): The width of each 2D block.
+        mantissa_bits (int): The number of mantissa bits for BFP quantization.
+        alpha_min (float): Minimum alpha value for search. Default 0.0.
+        alpha_max (float): Maximum alpha value for search. Default 1.0.
+        alpha_steps (int): Number of grid search steps. Default 20.
+        return_alpha (bool): If True, return (quantized_weight, best_alpha). Default False.
+    
+    Returns:
+        torch.Tensor: The quantized weight tensor (if return_alpha=False)
+        tuple[torch.Tensor, float]: (quantized_weight, best_alpha) (if return_alpha=True)
+    """
+    # Search for best alpha
+    best_alpha, min_loss = search_best_alpha_2d(
+        weight, activation,
+        block_height, block_width, mantissa_bits,
+        alpha_min, alpha_max, alpha_steps
+    )
+    
+    # Quantize with best alpha
+    quantized_weight = awq_fix_precision_quantize_2d(
+        weight, activation,
+        block_height, block_width, mantissa_bits,
+        alpha=best_alpha
+    )
+    
+    if return_alpha:
+        return quantized_weight, best_alpha
+    return quantized_weight
 
 
 # Backward compatibility aliases

@@ -30,7 +30,9 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from quantize_model_script.block_quantization import (
     block_floating_point_quantize_2d,
     awq_fix_precision_quantize_2d,
-    awq_mix_precision_quantize_2d
+    awq_mix_precision_quantize_2d,
+    search_best_alpha_2d,
+    awq_fix_precision_quantize_2d_auto
 )
 
 
@@ -64,6 +66,7 @@ class QuantizationConfig:
 
 def apply_runtime_quantization(model, method="bfp", block_height=16, block_width=16,
                                mantissa_bits=4, top_k=16, activations=None,
+                               alpha=1.0, alpha_search_steps=20,
                                skip_lm_head=True, verbose=True):
     """
     Apply quantization to model weights in-place at runtime.
@@ -81,6 +84,9 @@ def apply_runtime_quantization(model, method="bfp", block_height=16, block_width
         mantissa_bits: Number of mantissa bits
         top_k: Number of salient weights for mix-precision
         activations: Pre-collected activations dict (required for AWQ methods)
+        alpha: Scaling exponent for awq-fix (s = s_X^alpha). Default 1.0.
+               Set to None for automatic grid search per layer.
+        alpha_search_steps: Number of grid search steps when alpha=None. Default 20.
         skip_lm_head: Whether to skip quantizing lm_head layer
         verbose: Print quantization progress
     
@@ -99,6 +105,11 @@ def apply_runtime_quantization(model, method="bfp", block_height=16, block_width
         print(f"  Method: {method}")
         print(f"  Block size: {block_height}×{block_width}")
         print(f"  Mantissa bits: {mantissa_bits}")
+        if method == "awq-fix":
+            if alpha is None:
+                print(f"  Alpha: auto-search (steps={alpha_search_steps})")
+            else:
+                print(f"  Alpha: {alpha}")
         if method == "awq-mix":
             print(f"  Top-K: {top_k}")
         print("-" * 70)
@@ -124,13 +135,28 @@ def apply_runtime_quantization(model, method="bfp", block_height=16, block_width
                     if verbose:
                         print(f"  [SKIP] {name} (no activation)")
                     continue
-                quantized_weight = awq_fix_precision_quantize_2d(
-                    module.weight.data,
-                    activations[name],
-                    block_height=block_height,
-                    block_width=block_width,
-                    mantissa_bits=mantissa_bits
-                )
+                
+                # Auto-search for best alpha or use provided alpha
+                if alpha is None:
+                    quantized_weight, best_alpha = awq_fix_precision_quantize_2d_auto(
+                        module.weight.data,
+                        activations[name],
+                        block_height=block_height,
+                        block_width=block_width,
+                        mantissa_bits=mantissa_bits,
+                        alpha_steps=alpha_search_steps,
+                        return_alpha=True
+                    )
+                else:
+                    quantized_weight = awq_fix_precision_quantize_2d(
+                        module.weight.data,
+                        activations[name],
+                        block_height=block_height,
+                        block_width=block_width,
+                        mantissa_bits=mantissa_bits,
+                        alpha=alpha
+                    )
+                    best_alpha = alpha
             elif method == "awq-mix":
                 if name not in activations:
                     if verbose:
@@ -156,7 +182,10 @@ def apply_runtime_quantization(model, method="bfp", block_height=16, block_width
             total_mse += mse
             
             if verbose:
-                print(f"  [{quantized_count:3d}] {name:50s} MSE: {mse:.6e}")
+                if method == "awq-fix" and alpha is None:
+                    print(f"  [{quantized_count:3d}] {name:50s} alpha={best_alpha:.3f} MSE: {mse:.6e}")
+                else:
+                    print(f"  [{quantized_count:3d}] {name:50s} MSE: {mse:.6e}")
     
     if verbose:
         avg_mse = total_mse / quantized_count if quantized_count > 0 else 0
