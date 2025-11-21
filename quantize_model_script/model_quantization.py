@@ -91,13 +91,16 @@ def quantize_model_bfp_2d(model, block_height: int, block_width: int, mantissa_b
 
 
 def quantize_model_awq_2d(model, activations, block_height: int, block_width: int, 
-                         mantissa_bits: int, top_k: int = 16, method: str = "fix"):
+                         mantissa_bits: int, top_k: int = 16, method: str = "fix",
+                         alpha: float = 1.0, alpha_search_steps: int = 20):
     """
     AWQ 2D quantization with activation awareness.
     
     Args:
         method: "fix" for fix-precision (scaling-based, all weights in BFP), 
                 "mix" for mix-precision (top-k in FP32, rest in BFP)
+        alpha: Scaling exponent for fix-precision (default=1.0). Set to None for auto-search.
+        alpha_search_steps: Number of grid search steps when alpha=None (default=20).
     """
     return apply_runtime_quantization(
         model,
@@ -107,6 +110,8 @@ def quantize_model_awq_2d(model, activations, block_height: int, block_width: in
         mantissa_bits=mantissa_bits,
         top_k=top_k,
         activations=activations,
+        alpha=alpha if method == "fix" else 1.0,
+        alpha_search_steps=alpha_search_steps if method == "fix" else 20,
         verbose=True
     )
 
@@ -150,6 +155,10 @@ def main():
                         choices=["float32", "float16", "bfloat16"],
                         default="bfloat16",
                         help="Data type for saving model (default: bfloat16). Note: This only changes storage format, not the quantization itself.")
+    parser.add_argument("--alpha", type=float, default=None,
+                        help="Alpha scaling exponent for AWQ fix-precision (default: None for auto-search). Set to 1.0 to use original behavior.")
+    parser.add_argument("--alpha-search-steps", type=int, default=20,
+                        help="Number of grid search steps for alpha auto-search (default: 20). Only used when --alpha is None.")
     
     args = parser.parse_args()
     
@@ -243,7 +252,8 @@ def main():
                 elif method == "awq-fix":
                     quantize_model_awq_2d(
                         model_copy, activations, block_height, block_width, 
-                        mantissa_bits, top_k=args.top_k, method="fix"
+                        mantissa_bits, top_k=args.top_k, method="fix",
+                        alpha=args.alpha, alpha_search_steps=args.alpha_search_steps
                     )
                 elif method == "awq-mix":
                     quantize_model_awq_2d(
@@ -303,6 +313,8 @@ def main():
                         "dataset_config": args.dataset_config if ("awq" in method) else None,
                         "num_samples": args.num_samples if ("awq" in method) else None,
                         "source_model_path": model_path,
+                        "alpha": args.alpha if method == "awq-fix" else None,
+                        "alpha_search_steps": args.alpha_search_steps if (method == "awq-fix" and args.alpha is None) else None,
                         "script": "quantize_tinyllama_comprehensive_2d.py",
                     }
                     try:

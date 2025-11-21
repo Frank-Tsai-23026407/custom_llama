@@ -4,7 +4,7 @@
 # Uses unified model_quantization.py
 # Supports: BFP, AWQ-Fix, AWQ-Mix
 # Block Sizes: 128×1, 64×2, 32×4, 16×8, 8×16, 4×32, 2×64, 1×128
-# Mantissa Bits: 5, 4
+# Mantissa Bits: 5, 4, 3
 
 echo "======================================================================"
 echo "TinyLlama Comprehensive 2D Quantization (Unified Script)"
@@ -26,6 +26,7 @@ python model_quantization.py \
     --method all \
     --top-k 16 \
     --skip-generation-test \
+    --alpha-search-steps 20 \
     "$@"
 
 echo ""
