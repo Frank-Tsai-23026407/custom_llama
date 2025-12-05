@@ -185,7 +185,9 @@ def quantize_aq(model: PreTrainedModel, data: Sequence, val_data: Optional[Seque
     number_of_quantized_params = 0
     layers = get_layers(model)
 
-    for layer_index in range(len(layers)):
+    # Use trange for global progress bar and ETA
+    layer_iterator = trange(len(layers), desc="Quantizing layers", unit="layer")
+    for layer_index in layer_iterator:
         print(f"\n---------------- Layer {layer_index} of {len(layers)} ----------------")
         stats_payload = {}
         start_time = time.time()

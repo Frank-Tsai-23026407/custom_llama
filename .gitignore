@@ -1,5 +1,18 @@
+# models
 model/*
+*.pt
+*/*.pt
+*/*/*.pt
+*/*/*/*.pt
+*/*/*/*/*.pt
+*/*/*/*/*/*.pt
+*/*/*/*/*/*/*.pt
+*/*/*/*/*/*/*/*.pt
+
+
+# submodules
 lm-evaluation-harness/
+
 
 # Python cache
 __pycache__/

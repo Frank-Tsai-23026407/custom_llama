@@ -1,0 +1,616 @@
+model.layers.0.self_attn.q_proj Original: Kurtosis=1036.37, Min=-5.64, Max=6.46
+model.layers.0.self_attn.q_proj Hadamard: Kurtosis=0.48, Min=-0.48, Max=0.50
+model.layers.0.self_attn.k_proj Original: Kurtosis=1036.37, Min=-5.64, Max=6.46
+model.layers.0.self_attn.k_proj Hadamard: Kurtosis=0.48, Min=-0.48, Max=0.50
+model.layers.0.self_attn.v_proj Original: Kurtosis=1036.37, Min=-5.64, Max=6.46
+model.layers.0.self_attn.v_proj Hadamard: Kurtosis=0.48, Min=-0.48, Max=0.50
+model.layers.0.self_attn.o_proj Original: Kurtosis=50.90, Min=-0.34, Max=0.34
+model.layers.0.self_attn.o_proj Hadamard: Kurtosis=13.05, Min=-0.17, Max=0.21
+model.layers.0.mlp.gate_proj Original: Kurtosis=19.40, Min=-2.62, Max=3.05
+model.layers.0.mlp.gate_proj Hadamard: Kurtosis=0.43, Min=-0.64, Max=0.73
+model.layers.0.mlp.up_proj Original: Kurtosis=19.40, Min=-2.62, Max=3.05
+model.layers.0.mlp.up_proj Hadamard: Kurtosis=0.43, Min=-0.64, Max=0.73
+model.layers.0.mlp.down_proj Original: Kurtosis=920634.88, Min=-97.69, Max=162.25
+model.layers.0.mlp.down_proj Hadamard: Kurtosis=1795.17, Min=-7.19, Max=7.19
+model.layers.1.self_attn.q_proj Original: Kurtosis=139.98, Min=-5.12, Max=5.94
+model.layers.1.self_attn.q_proj Hadamard: Kurtosis=0.01, Min=-0.98, Max=0.98
+model.layers.1.self_attn.k_proj Original: Kurtosis=139.98, Min=-5.12, Max=5.94
+model.layers.1.self_attn.k_proj Hadamard: Kurtosis=0.01, Min=-0.98, Max=0.98
+model.layers.1.self_attn.v_proj Original: Kurtosis=139.98, Min=-5.12, Max=5.94
+model.layers.1.self_attn.v_proj Hadamard: Kurtosis=0.01, Min=-0.98, Max=0.98
+model.layers.1.self_attn.o_proj Original: Kurtosis=58.09, Min=-0.57, Max=0.57
+model.layers.1.self_attn.o_proj Hadamard: Kurtosis=9.08, Min=-0.14, Max=0.16
+model.layers.1.mlp.gate_proj Original: Kurtosis=293.25, Min=-11.33, Max=11.33
+model.layers.1.mlp.gate_proj Hadamard: Kurtosis=0.55, Min=-0.67, Max=0.67
+model.layers.1.mlp.up_proj Original: Kurtosis=293.25, Min=-11.33, Max=11.33
+model.layers.1.mlp.up_proj Hadamard: Kurtosis=0.55, Min=-0.67, Max=0.67
+model.layers.1.mlp.down_proj Original: Kurtosis=250674.06, Min=-16.41, Max=16.41
+model.layers.1.mlp.down_proj Hadamard: Kurtosis=615.77, Min=-1.04, Max=1.04
+model.layers.2.self_attn.q_proj Original: Kurtosis=53.91, Min=-7.50, Max=7.50
+model.layers.2.self_attn.q_proj Hadamard: Kurtosis=0.28, Min=-1.96, Max=1.96
+model.layers.2.self_attn.k_proj Original: Kurtosis=53.91, Min=-7.50, Max=7.50
+model.layers.2.self_attn.k_proj Hadamard: Kurtosis=0.28, Min=-1.96, Max=1.96
+model.layers.2.self_attn.v_proj Original: Kurtosis=53.91, Min=-7.50, Max=7.50
+model.layers.2.self_attn.v_proj Hadamard: Kurtosis=0.28, Min=-1.96, Max=1.96
+model.layers.2.self_attn.o_proj Original: Kurtosis=41.58, Min=-0.45, Max=0.51
+model.layers.2.self_attn.o_proj Hadamard: Kurtosis=16.75, Min=-0.36, Max=0.41
+model.layers.2.mlp.gate_proj Original: Kurtosis=1.76, Min=-2.40, Max=2.59
+model.layers.2.mlp.gate_proj Hadamard: Kurtosis=0.23, Min=-0.77, Max=0.77
+model.layers.2.mlp.up_proj Original: Kurtosis=1.76, Min=-2.40, Max=2.59
+model.layers.2.mlp.up_proj Hadamard: Kurtosis=0.23, Min=-0.77, Max=0.77
+model.layers.2.mlp.down_proj Original: Kurtosis=388.24, Min=-1.02, Max=1.02
+model.layers.2.mlp.down_proj Hadamard: Kurtosis=1.49, Min=-0.08, Max=0.08
+model.layers.3.self_attn.q_proj Original: Kurtosis=84.09, Min=-9.05, Max=9.05
+model.layers.3.self_attn.q_proj Hadamard: Kurtosis=0.43, Min=-1.80, Max=1.81
+model.layers.3.self_attn.k_proj Original: Kurtosis=84.09, Min=-9.05, Max=9.05
+model.layers.3.self_attn.k_proj Hadamard: Kurtosis=0.43, Min=-1.80, Max=1.81
+model.layers.3.self_attn.v_proj Original: Kurtosis=84.09, Min=-9.05, Max=9.05
+model.layers.3.self_attn.v_proj Hadamard: Kurtosis=0.43, Min=-1.80, Max=1.81
+model.layers.3.self_attn.o_proj Original: Kurtosis=15.12, Min=-0.43, Max=0.60
+model.layers.3.self_attn.o_proj Hadamard: Kurtosis=13.16, Min=-0.30, Max=0.30
+model.layers.3.mlp.gate_proj Original: Kurtosis=1.73, Min=-2.44, Max=2.63
+model.layers.3.mlp.gate_proj Hadamard: Kurtosis=0.17, Min=-0.80, Max=0.80
+model.layers.3.mlp.up_proj Original: Kurtosis=1.73, Min=-2.44, Max=2.63
+model.layers.3.mlp.up_proj Hadamard: Kurtosis=0.17, Min=-0.80, Max=0.80
+model.layers.3.mlp.down_proj Original: Kurtosis=412.84, Min=-1.38, Max=1.41
+model.layers.3.mlp.down_proj Hadamard: Kurtosis=1.24, Min=-0.10, Max=0.10
+model.layers.4.self_attn.q_proj Original: Kurtosis=56.12, Min=-8.67, Max=8.67
+model.layers.4.self_attn.q_proj Hadamard: Kurtosis=0.39, Min=-2.08, Max=2.08
+model.layers.4.self_attn.k_proj Original: Kurtosis=56.12, Min=-8.67, Max=8.67
+model.layers.4.self_attn.k_proj Hadamard: Kurtosis=0.39, Min=-2.08, Max=2.08
+model.layers.4.self_attn.v_proj Original: Kurtosis=56.12, Min=-8.67, Max=8.67
+model.layers.4.self_attn.v_proj Hadamard: Kurtosis=0.39, Min=-2.08, Max=2.08
+model.layers.4.self_attn.o_proj Original: Kurtosis=23.96, Min=-0.69, Max=0.69
+model.layers.4.self_attn.o_proj Hadamard: Kurtosis=21.85, Min=-0.39, Max=0.51
+model.layers.4.mlp.gate_proj Original: Kurtosis=1.50, Min=-2.65, Max=2.89
+model.layers.4.mlp.gate_proj Hadamard: Kurtosis=0.13, Min=-0.86, Max=0.86
+model.layers.4.mlp.up_proj Original: Kurtosis=1.50, Min=-2.65, Max=2.89
+model.layers.4.mlp.up_proj Hadamard: Kurtosis=0.13, Min=-0.86, Max=0.86
+model.layers.4.mlp.down_proj Original: Kurtosis=159.95, Min=-1.16, Max=1.16
+model.layers.4.mlp.down_proj Hadamard: Kurtosis=0.83, Min=-0.10, Max=0.10
+model.layers.5.self_attn.q_proj Original: Kurtosis=47.11, Min=-8.27, Max=8.27
+model.layers.5.self_attn.q_proj Hadamard: Kurtosis=0.32, Min=-1.99, Max=2.20
+model.layers.5.self_attn.k_proj Original: Kurtosis=47.11, Min=-8.27, Max=8.27
+model.layers.5.self_attn.k_proj Hadamard: Kurtosis=0.32, Min=-1.99, Max=2.20
+model.layers.5.self_attn.v_proj Original: Kurtosis=47.11, Min=-8.27, Max=8.27
+model.layers.5.self_attn.v_proj Hadamard: Kurtosis=0.32, Min=-1.99, Max=2.20
+model.layers.5.self_attn.o_proj Original: Kurtosis=17.13, Min=-0.51, Max=0.58
+model.layers.5.self_attn.o_proj Hadamard: Kurtosis=14.84, Min=-0.38, Max=0.39
+model.layers.5.mlp.gate_proj Original: Kurtosis=1.85, Min=-3.22, Max=3.22
+model.layers.5.mlp.gate_proj Hadamard: Kurtosis=0.12, Min=-0.95, Max=0.95
+model.layers.5.mlp.up_proj Original: Kurtosis=1.85, Min=-3.22, Max=3.22
+model.layers.5.mlp.up_proj Hadamard: Kurtosis=0.12, Min=-0.95, Max=0.95
+model.layers.5.mlp.down_proj Original: Kurtosis=117.02, Min=-1.39, Max=1.39
+model.layers.5.mlp.down_proj Hadamard: Kurtosis=0.61, Min=-0.13, Max=0.13
+model.layers.6.self_attn.q_proj Original: Kurtosis=49.84, Min=-9.35, Max=9.35
+model.layers.6.self_attn.q_proj Hadamard: Kurtosis=0.33, Min=-2.27, Max=2.27
+model.layers.6.self_attn.k_proj Original: Kurtosis=49.84, Min=-9.35, Max=9.35
+model.layers.6.self_attn.k_proj Hadamard: Kurtosis=0.33, Min=-2.27, Max=2.27
+model.layers.6.self_attn.v_proj Original: Kurtosis=49.84, Min=-9.35, Max=9.35
+model.layers.6.self_attn.v_proj Hadamard: Kurtosis=0.33, Min=-2.27, Max=2.27
+model.layers.6.self_attn.o_proj Original: Kurtosis=54.12, Min=-0.96, Max=0.96
+model.layers.6.self_attn.o_proj Hadamard: Kurtosis=10.97, Min=-0.54, Max=0.54
+model.layers.6.mlp.gate_proj Original: Kurtosis=6.66, Min=-5.14, Max=5.23
+model.layers.6.mlp.gate_proj Hadamard: Kurtosis=0.07, Min=-1.15, Max=1.15
+model.layers.6.mlp.up_proj Original: Kurtosis=6.66, Min=-5.14, Max=5.23
+model.layers.6.mlp.up_proj Hadamard: Kurtosis=0.07, Min=-1.15, Max=1.15
+model.layers.6.mlp.down_proj Original: Kurtosis=161.22, Min=-2.13, Max=2.13
+model.layers.6.mlp.down_proj Hadamard: Kurtosis=0.41, Min=-0.13, Max=0.15
+model.layers.7.self_attn.q_proj Original: Kurtosis=51.33, Min=-8.56, Max=8.56
+model.layers.7.self_attn.q_proj Hadamard: Kurtosis=0.20, Min=-2.10, Max=2.14
+model.layers.7.self_attn.k_proj Original: Kurtosis=51.33, Min=-8.56, Max=8.56
+model.layers.7.self_attn.k_proj Hadamard: Kurtosis=0.20, Min=-2.10, Max=2.14
+model.layers.7.self_attn.v_proj Original: Kurtosis=51.33, Min=-8.56, Max=8.56
+model.layers.7.self_attn.v_proj Hadamard: Kurtosis=0.20, Min=-2.10, Max=2.14
+model.layers.7.self_attn.o_proj Original: Kurtosis=29.04, Min=-0.65, Max=1.09
+model.layers.7.self_attn.o_proj Hadamard: Kurtosis=15.93, Min=-0.47, Max=0.50
+model.layers.7.mlp.gate_proj Original: Kurtosis=10.01, Min=-4.55, Max=6.03
+model.layers.7.mlp.gate_proj Hadamard: Kurtosis=0.07, Min=-1.08, Max=1.13
+model.layers.7.mlp.up_proj Original: Kurtosis=10.01, Min=-4.55, Max=6.03
+model.layers.7.mlp.up_proj Hadamard: Kurtosis=0.07, Min=-1.08, Max=1.13
+model.layers.7.mlp.down_proj Original: Kurtosis=2251.42, Min=-1.64, Max=7.61
+model.layers.7.mlp.down_proj Hadamard: Kurtosis=4.18, Min=-0.35, Max=0.35
+model.layers.8.self_attn.q_proj Original: Kurtosis=39.67, Min=-9.84, Max=11.53
+model.layers.8.self_attn.q_proj Hadamard: Kurtosis=0.19, Min=-2.54, Max=2.59
+model.layers.8.self_attn.k_proj Original: Kurtosis=39.67, Min=-9.84, Max=11.53
+model.layers.8.self_attn.k_proj Hadamard: Kurtosis=0.19, Min=-2.54, Max=2.59
+model.layers.8.self_attn.v_proj Original: Kurtosis=39.67, Min=-9.84, Max=11.53
+model.layers.8.self_attn.v_proj Hadamard: Kurtosis=0.19, Min=-2.54, Max=2.59
+model.layers.8.self_attn.o_proj Original: Kurtosis=32.84, Min=-1.03, Max=1.42
+model.layers.8.self_attn.o_proj Hadamard: Kurtosis=21.13, Min=-1.10, Max=1.10
+model.layers.8.mlp.gate_proj Original: Kurtosis=5.26, Min=-5.52, Max=5.84
+model.layers.8.mlp.gate_proj Hadamard: Kurtosis=0.05, Min=-1.22, Max=1.22
+model.layers.8.mlp.up_proj Original: Kurtosis=5.26, Min=-5.52, Max=5.84
+model.layers.8.mlp.up_proj Hadamard: Kurtosis=0.05, Min=-1.22, Max=1.22
+model.layers.8.mlp.down_proj Original: Kurtosis=111.76, Min=-3.06, Max=3.06
+model.layers.8.mlp.down_proj Hadamard: Kurtosis=0.39, Min=-0.19, Max=0.20
+model.layers.9.self_attn.q_proj Original: Kurtosis=47.02, Min=-8.82, Max=8.82
+model.layers.9.self_attn.q_proj Hadamard: Kurtosis=0.14, Min=-2.07, Max=2.07
+model.layers.9.self_attn.k_proj Original: Kurtosis=47.02, Min=-8.82, Max=8.82
+model.layers.9.self_attn.k_proj Hadamard: Kurtosis=0.14, Min=-2.07, Max=2.07
+model.layers.9.self_attn.v_proj Original: Kurtosis=47.02, Min=-8.82, Max=8.82
+model.layers.9.self_attn.v_proj Hadamard: Kurtosis=0.14, Min=-2.07, Max=2.07
+model.layers.9.self_attn.o_proj Original: Kurtosis=20.50, Min=-1.09, Max=1.09
+model.layers.9.self_attn.o_proj Hadamard: Kurtosis=9.62, Min=-0.78, Max=0.78
+model.layers.9.mlp.gate_proj Original: Kurtosis=3.36, Min=-6.11, Max=6.11
+model.layers.9.mlp.gate_proj Hadamard: Kurtosis=0.06, Min=-1.22, Max=1.22
+model.layers.9.mlp.up_proj Original: Kurtosis=3.36, Min=-6.11, Max=6.11
+model.layers.9.mlp.up_proj Hadamard: Kurtosis=0.06, Min=-1.22, Max=1.22
+model.layers.9.mlp.down_proj Original: Kurtosis=57.21, Min=-2.18, Max=2.18
+model.layers.9.mlp.down_proj Hadamard: Kurtosis=0.27, Min=-0.20, Max=0.20
+model.layers.10.self_attn.q_proj Original: Kurtosis=23.59, Min=-10.57, Max=10.57
+model.layers.10.self_attn.q_proj Hadamard: Kurtosis=0.15, Min=-2.73, Max=2.73
+model.layers.10.self_attn.k_proj Original: Kurtosis=23.59, Min=-10.57, Max=10.57
+model.layers.10.self_attn.k_proj Hadamard: Kurtosis=0.15, Min=-2.73, Max=2.73
+model.layers.10.self_attn.v_proj Original: Kurtosis=23.59, Min=-10.57, Max=10.57
+model.layers.10.self_attn.v_proj Hadamard: Kurtosis=0.15, Min=-2.73, Max=2.73
+model.layers.10.self_attn.o_proj Original: Kurtosis=143.35, Min=-1.21, Max=2.64
+model.layers.10.self_attn.o_proj Hadamard: Kurtosis=31.96, Min=-1.79, Max=2.27
+model.layers.10.mlp.gate_proj Original: Kurtosis=1.73, Min=-5.86, Max=6.03
+model.layers.10.mlp.gate_proj Hadamard: Kurtosis=0.04, Min=-1.26, Max=1.35
+model.layers.10.mlp.up_proj Original: Kurtosis=1.73, Min=-5.86, Max=6.03
+model.layers.10.mlp.up_proj Hadamard: Kurtosis=0.04, Min=-1.26, Max=1.35
+model.layers.10.mlp.down_proj Original: Kurtosis=108.21, Min=-2.61, Max=2.61
+model.layers.10.mlp.down_proj Hadamard: Kurtosis=0.40, Min=-0.24, Max=0.24
+model.layers.11.self_attn.q_proj Original: Kurtosis=33.46, Min=-10.05, Max=10.05
+model.layers.11.self_attn.q_proj Hadamard: Kurtosis=0.11, Min=-2.18, Max=2.46
+model.layers.11.self_attn.k_proj Original: Kurtosis=33.46, Min=-10.05, Max=10.05
+model.layers.11.self_attn.k_proj Hadamard: Kurtosis=0.11, Min=-2.18, Max=2.46
+model.layers.11.self_attn.v_proj Original: Kurtosis=33.46, Min=-10.05, Max=10.05
+model.layers.11.self_attn.v_proj Hadamard: Kurtosis=0.11, Min=-2.18, Max=2.46
+model.layers.11.self_attn.o_proj Original: Kurtosis=17.02, Min=-1.64, Max=1.64
+model.layers.11.self_attn.o_proj Hadamard: Kurtosis=55.72, Min=-2.45, Max=2.45
+model.layers.11.mlp.gate_proj Original: Kurtosis=1.72, Min=-5.66, Max=6.53
+model.layers.11.mlp.gate_proj Hadamard: Kurtosis=0.03, Min=-1.43, Max=1.43
+model.layers.11.mlp.up_proj Original: Kurtosis=1.72, Min=-5.66, Max=6.53
+model.layers.11.mlp.up_proj Hadamard: Kurtosis=0.03, Min=-1.43, Max=1.43
+model.layers.11.mlp.down_proj Original: Kurtosis=144.09, Min=-3.00, Max=3.00
+model.layers.11.mlp.down_proj Hadamard: Kurtosis=0.54, Min=-0.29, Max=0.30
+model.layers.12.self_attn.q_proj Original: Kurtosis=40.35, Min=-10.78, Max=10.78
+model.layers.12.self_attn.q_proj Hadamard: Kurtosis=0.17, Min=-2.31, Max=2.43
+model.layers.12.self_attn.k_proj Original: Kurtosis=40.35, Min=-10.78, Max=10.78
+model.layers.12.self_attn.k_proj Hadamard: Kurtosis=0.17, Min=-2.31, Max=2.43
+model.layers.12.self_attn.v_proj Original: Kurtosis=40.35, Min=-10.78, Max=10.78
+model.layers.12.self_attn.v_proj Hadamard: Kurtosis=0.17, Min=-2.31, Max=2.43
+model.layers.12.self_attn.o_proj Original: Kurtosis=18.13, Min=-1.20, Max=1.20
+model.layers.12.self_attn.o_proj Hadamard: Kurtosis=19.60, Min=-1.23, Max=1.33
+model.layers.12.mlp.gate_proj Original: Kurtosis=2.58, Min=-5.36, Max=7.23
+model.layers.12.mlp.gate_proj Hadamard: Kurtosis=0.04, Min=-1.57, Max=1.57
+model.layers.12.mlp.up_proj Original: Kurtosis=2.58, Min=-5.36, Max=7.23
+model.layers.12.mlp.up_proj Hadamard: Kurtosis=0.04, Min=-1.57, Max=1.57
+model.layers.12.mlp.down_proj Original: Kurtosis=74.45, Min=-3.11, Max=3.32
+model.layers.12.mlp.down_proj Hadamard: Kurtosis=0.29, Min=-0.27, Max=0.27
+model.layers.13.self_attn.q_proj Original: Kurtosis=45.46, Min=-11.07, Max=11.07
+model.layers.13.self_attn.q_proj Hadamard: Kurtosis=0.21, Min=-2.60, Max=2.60
+model.layers.13.self_attn.k_proj Original: Kurtosis=45.46, Min=-11.07, Max=11.07
+model.layers.13.self_attn.k_proj Hadamard: Kurtosis=0.21, Min=-2.60, Max=2.60
+model.layers.13.self_attn.v_proj Original: Kurtosis=45.46, Min=-11.07, Max=11.07
+model.layers.13.self_attn.v_proj Hadamard: Kurtosis=0.21, Min=-2.60, Max=2.60
+model.layers.13.self_attn.o_proj Original: Kurtosis=8.58, Min=-1.07, Max=1.20
+model.layers.13.self_attn.o_proj Hadamard: Kurtosis=16.66, Min=-1.40, Max=1.40
+model.layers.13.mlp.gate_proj Original: Kurtosis=4.09, Min=-5.47, Max=7.73
+model.layers.13.mlp.gate_proj Hadamard: Kurtosis=0.03, Min=-1.48, Max=1.48
+model.layers.13.mlp.up_proj Original: Kurtosis=4.09, Min=-5.47, Max=7.73
+model.layers.13.mlp.up_proj Hadamard: Kurtosis=0.03, Min=-1.48, Max=1.48
+model.layers.13.mlp.down_proj Original: Kurtosis=109.87, Min=-3.31, Max=4.01
+model.layers.13.mlp.down_proj Hadamard: Kurtosis=0.33, Min=-0.27, Max=0.31
+model.layers.14.self_attn.q_proj Original: Kurtosis=40.83, Min=-11.95, Max=11.95
+model.layers.14.self_attn.q_proj Hadamard: Kurtosis=0.19, Min=-2.70, Max=2.70
+model.layers.14.self_attn.k_proj Original: Kurtosis=40.83, Min=-11.95, Max=11.95
+model.layers.14.self_attn.k_proj Hadamard: Kurtosis=0.19, Min=-2.70, Max=2.70
+model.layers.14.self_attn.v_proj Original: Kurtosis=40.83, Min=-11.95, Max=11.95
+model.layers.14.self_attn.v_proj Hadamard: Kurtosis=0.19, Min=-2.70, Max=2.70
+model.layers.14.self_attn.o_proj Original: Kurtosis=8.47, Min=-1.46, Max=1.61
+model.layers.14.self_attn.o_proj Hadamard: Kurtosis=15.32, Min=-1.60, Max=1.60
+model.layers.14.mlp.gate_proj Original: Kurtosis=4.38, Min=-5.86, Max=8.85
+model.layers.14.mlp.gate_proj Hadamard: Kurtosis=0.03, Min=-1.61, Max=1.61
+model.layers.14.mlp.up_proj Original: Kurtosis=4.38, Min=-5.86, Max=8.85
+model.layers.14.mlp.up_proj Hadamard: Kurtosis=0.03, Min=-1.61, Max=1.61
+model.layers.14.mlp.down_proj Original: Kurtosis=275.65, Min=-5.40, Max=5.40
+model.layers.14.mlp.down_proj Hadamard: Kurtosis=0.62, Min=-0.40, Max=0.40
+model.layers.15.self_attn.q_proj Original: Kurtosis=37.17, Min=-12.45, Max=12.45
+model.layers.15.self_attn.q_proj Hadamard: Kurtosis=0.17, Min=-2.65, Max=2.66
+model.layers.15.self_attn.k_proj Original: Kurtosis=37.17, Min=-12.45, Max=12.45
+model.layers.15.self_attn.k_proj Hadamard: Kurtosis=0.17, Min=-2.65, Max=2.66
+model.layers.15.self_attn.v_proj Original: Kurtosis=37.17, Min=-12.45, Max=12.45
+model.layers.15.self_attn.v_proj Hadamard: Kurtosis=0.17, Min=-2.65, Max=2.66
+model.layers.15.self_attn.o_proj Original: Kurtosis=8.78, Min=-1.93, Max=1.93
+model.layers.15.self_attn.o_proj Hadamard: Kurtosis=15.48, Min=-1.69, Max=1.69
+model.layers.15.mlp.gate_proj Original: Kurtosis=4.83, Min=-5.38, Max=9.80
+model.layers.15.mlp.gate_proj Hadamard: Kurtosis=0.03, Min=-1.62, Max=1.77
+model.layers.15.mlp.up_proj Original: Kurtosis=4.83, Min=-5.38, Max=9.80
+model.layers.15.mlp.up_proj Hadamard: Kurtosis=0.03, Min=-1.62, Max=1.77
+model.layers.15.mlp.down_proj Original: Kurtosis=605.97, Min=-6.85, Max=7.48
+model.layers.15.mlp.down_proj Hadamard: Kurtosis=1.22, Min=-0.54, Max=0.54
+model.layers.16.self_attn.q_proj Original: Kurtosis=34.38, Min=-10.59, Max=10.59
+model.layers.16.self_attn.q_proj Hadamard: Kurtosis=0.15, Min=-2.36, Max=2.36
+model.layers.16.self_attn.k_proj Original: Kurtosis=34.38, Min=-10.59, Max=10.59
+model.layers.16.self_attn.k_proj Hadamard: Kurtosis=0.15, Min=-2.36, Max=2.36
+model.layers.16.self_attn.v_proj Original: Kurtosis=34.38, Min=-10.59, Max=10.59
+model.layers.16.self_attn.v_proj Hadamard: Kurtosis=0.15, Min=-2.36, Max=2.36
+model.layers.16.self_attn.o_proj Original: Kurtosis=10.59, Min=-1.23, Max=1.41
+model.layers.16.self_attn.o_proj Hadamard: Kurtosis=16.30, Min=-1.25, Max=1.47
+model.layers.16.mlp.gate_proj Original: Kurtosis=3.01, Min=-4.91, Max=9.27
+model.layers.16.mlp.gate_proj Hadamard: Kurtosis=0.06, Min=-1.67, Max=1.73
+model.layers.16.mlp.up_proj Original: Kurtosis=3.01, Min=-4.91, Max=9.27
+model.layers.16.mlp.up_proj Hadamard: Kurtosis=0.06, Min=-1.67, Max=1.73
+model.layers.16.mlp.down_proj Original: Kurtosis=497.59, Min=-7.64, Max=8.48
+model.layers.16.mlp.down_proj Hadamard: Kurtosis=1.15, Min=-0.59, Max=0.59
+model.layers.17.self_attn.q_proj Original: Kurtosis=38.13, Min=-10.76, Max=11.84
+model.layers.17.self_attn.q_proj Hadamard: Kurtosis=0.15, Min=-2.40, Max=2.40
+model.layers.17.self_attn.k_proj Original: Kurtosis=38.13, Min=-10.76, Max=11.84
+model.layers.17.self_attn.k_proj Hadamard: Kurtosis=0.15, Min=-2.40, Max=2.40
+model.layers.17.self_attn.v_proj Original: Kurtosis=38.13, Min=-10.76, Max=11.84
+model.layers.17.self_attn.v_proj Hadamard: Kurtosis=0.15, Min=-2.40, Max=2.40
+model.layers.17.self_attn.o_proj Original: Kurtosis=15.64, Min=-1.92, Max=1.92
+model.layers.17.self_attn.o_proj Hadamard: Kurtosis=16.42, Min=-1.66, Max=1.67
+model.layers.17.mlp.gate_proj Original: Kurtosis=3.14, Min=-6.07, Max=10.64
+model.layers.17.mlp.gate_proj Hadamard: Kurtosis=0.08, Min=-1.87, Max=1.94
+model.layers.17.mlp.up_proj Original: Kurtosis=3.14, Min=-6.07, Max=10.64
+model.layers.17.mlp.up_proj Hadamard: Kurtosis=0.08, Min=-1.87, Max=1.94
+model.layers.17.mlp.down_proj Original: Kurtosis=562.94, Min=-8.23, Max=8.23
+model.layers.17.mlp.down_proj Hadamard: Kurtosis=1.47, Min=-0.64, Max=0.64
+model.layers.18.self_attn.q_proj Original: Kurtosis=45.38, Min=-11.49, Max=13.20
+model.layers.18.self_attn.q_proj Hadamard: Kurtosis=0.23, Min=-2.97, Max=2.97
+model.layers.18.self_attn.k_proj Original: Kurtosis=45.38, Min=-11.49, Max=13.20
+model.layers.18.self_attn.k_proj Hadamard: Kurtosis=0.23, Min=-2.97, Max=2.97
+model.layers.18.self_attn.v_proj Original: Kurtosis=45.38, Min=-11.49, Max=13.20
+model.layers.18.self_attn.v_proj Hadamard: Kurtosis=0.23, Min=-2.97, Max=2.97
+model.layers.18.self_attn.o_proj Original: Kurtosis=15.88, Min=-3.09, Max=3.27
+model.layers.18.self_attn.o_proj Hadamard: Kurtosis=8.49, Min=-2.10, Max=2.10
+model.layers.18.mlp.gate_proj Original: Kurtosis=2.20, Min=-6.26, Max=9.62
+model.layers.18.mlp.gate_proj Hadamard: Kurtosis=0.11, Min=-1.96, Max=2.04
+model.layers.18.mlp.up_proj Original: Kurtosis=2.20, Min=-6.26, Max=9.62
+model.layers.18.mlp.up_proj Hadamard: Kurtosis=0.11, Min=-1.96, Max=2.04
+model.layers.18.mlp.down_proj Original: Kurtosis=332.25, Min=-8.21, Max=10.47
+model.layers.18.mlp.down_proj Hadamard: Kurtosis=1.34, Min=-0.74, Max=0.85
+model.layers.19.self_attn.q_proj Original: Kurtosis=47.80, Min=-10.59, Max=12.73
+model.layers.19.self_attn.q_proj Hadamard: Kurtosis=0.21, Min=-2.61, Max=2.61
+model.layers.19.self_attn.k_proj Original: Kurtosis=47.80, Min=-10.59, Max=12.73
+model.layers.19.self_attn.k_proj Hadamard: Kurtosis=0.21, Min=-2.61, Max=2.61
+model.layers.19.self_attn.v_proj Original: Kurtosis=47.80, Min=-10.59, Max=12.73
+model.layers.19.self_attn.v_proj Hadamard: Kurtosis=0.21, Min=-2.61, Max=2.61
+model.layers.19.self_attn.o_proj Original: Kurtosis=8.48, Min=-1.96, Max=2.04
+model.layers.19.self_attn.o_proj Hadamard: Kurtosis=12.70, Min=-1.90, Max=1.90
+model.layers.19.mlp.gate_proj Original: Kurtosis=3.12, Min=-7.45, Max=13.39
+model.layers.19.mlp.gate_proj Hadamard: Kurtosis=0.13, Min=-2.17, Max=2.29
+model.layers.19.mlp.up_proj Original: Kurtosis=3.12, Min=-7.45, Max=13.39
+model.layers.19.mlp.up_proj Hadamard: Kurtosis=0.13, Min=-2.17, Max=2.29
+model.layers.19.mlp.down_proj Original: Kurtosis=181225.53, Min=-11.12, Max=128.12
+model.layers.19.mlp.down_proj Hadamard: Kurtosis=353.66, Min=-5.79, Max=5.79
+model.layers.20.self_attn.q_proj Original: Kurtosis=26.46, Min=-9.44, Max=11.07
+model.layers.20.self_attn.q_proj Hadamard: Kurtosis=0.11, Min=-2.74, Max=2.82
+model.layers.20.self_attn.k_proj Original: Kurtosis=26.46, Min=-9.44, Max=11.07
+model.layers.20.self_attn.k_proj Hadamard: Kurtosis=0.11, Min=-2.74, Max=2.82
+model.layers.20.self_attn.v_proj Original: Kurtosis=26.46, Min=-9.44, Max=11.07
+model.layers.20.self_attn.v_proj Hadamard: Kurtosis=0.11, Min=-2.74, Max=2.82
+model.layers.20.self_attn.o_proj Original: Kurtosis=10.46, Min=-3.73, Max=3.73
+model.layers.20.self_attn.o_proj Hadamard: Kurtosis=6.62, Min=-3.76, Max=3.76
+model.layers.20.mlp.gate_proj Original: Kurtosis=2.42, Min=-8.23, Max=9.67
+model.layers.20.mlp.gate_proj Hadamard: Kurtosis=0.09, Min=-2.32, Max=2.32
+model.layers.20.mlp.up_proj Original: Kurtosis=2.42, Min=-8.23, Max=9.67
+model.layers.20.mlp.up_proj Hadamard: Kurtosis=0.09, Min=-2.32, Max=2.32
+model.layers.20.mlp.down_proj Original: Kurtosis=461.01, Min=-17.20, Max=17.20
+model.layers.20.mlp.down_proj Hadamard: Kurtosis=0.90, Min=-1.08, Max=1.08
+model.layers.21.self_attn.q_proj Original: Kurtosis=23.01, Min=-7.54, Max=9.95
+model.layers.21.self_attn.q_proj Hadamard: Kurtosis=0.09, Min=-2.54, Max=2.54
+model.layers.21.self_attn.k_proj Original: Kurtosis=23.01, Min=-7.54, Max=9.95
+model.layers.21.self_attn.k_proj Hadamard: Kurtosis=0.09, Min=-2.54, Max=2.54
+model.layers.21.self_attn.v_proj Original: Kurtosis=23.01, Min=-7.54, Max=9.95
+model.layers.21.self_attn.v_proj Hadamard: Kurtosis=0.09, Min=-2.54, Max=2.54
+model.layers.21.self_attn.o_proj Original: Kurtosis=7.65, Min=-3.32, Max=3.65
+model.layers.21.self_attn.o_proj Hadamard: Kurtosis=29.28, Min=-5.77, Max=5.77
+model.layers.21.mlp.gate_proj Original: Kurtosis=5.95, Min=-13.60, Max=13.60
+model.layers.21.mlp.gate_proj Hadamard: Kurtosis=0.09, Min=-2.54, Max=2.54
+model.layers.21.mlp.up_proj Original: Kurtosis=5.95, Min=-13.60, Max=13.60
+model.layers.21.mlp.up_proj Hadamard: Kurtosis=0.09, Min=-2.54, Max=2.54
+model.layers.21.mlp.down_proj Original: Kurtosis=5728.12, Min=-107.81, Max=107.81
+model.layers.21.mlp.down_proj Hadamard: Kurtosis=10.86, Min=-4.94, Max=4.94
+model.layers.0.self_attn.q_proj Weight Original: Kurtosis=14.73, Min=-1.42, Max=1.42
+model.layers.0.self_attn.q_proj Weight Hadamard: Kurtosis=2.99, Min=-0.33, Max=0.33
+model.layers.0.self_attn.k_proj Weight Original: Kurtosis=7.68, Min=-1.25, Max=1.25
+model.layers.0.self_attn.k_proj Weight Hadamard: Kurtosis=1.43, Min=-0.44, Max=0.48
+model.layers.0.self_attn.v_proj Weight Original: Kurtosis=1.64, Min=-0.07, Max=0.08
+model.layers.0.self_attn.v_proj Weight Hadamard: Kurtosis=0.21, Min=-0.05, Max=0.05
+model.layers.0.self_attn.o_proj Weight Original: Kurtosis=9.55, Min=-0.40, Max=0.41
+model.layers.0.self_attn.o_proj Weight Hadamard: Kurtosis=3.47, Min=-0.28, Max=0.28
+model.layers.0.mlp.gate_proj Weight Original: Kurtosis=3.50, Min=-0.48, Max=0.48
+model.layers.0.mlp.gate_proj Weight Hadamard: Kurtosis=3.31, Min=-0.53, Max=0.53
+model.layers.0.mlp.up_proj Weight Original: Kurtosis=0.14, Min=-0.26, Max=0.26
+model.layers.0.mlp.up_proj Weight Hadamard: Kurtosis=0.01, Min=-0.11, Max=0.13
+model.layers.0.mlp.down_proj Weight Original: Kurtosis=7.76, Min=-1.23, Max=1.23
+model.layers.0.mlp.down_proj Weight Hadamard: Kurtosis=0.34, Min=-0.22, Max=0.24
+model.layers.1.self_attn.q_proj Weight Original: Kurtosis=3.93, Min=-1.20, Max=1.20
+model.layers.1.self_attn.q_proj Weight Hadamard: Kurtosis=1.81, Min=-0.29, Max=0.32
+model.layers.1.self_attn.k_proj Weight Original: Kurtosis=2.70, Min=-0.57, Max=0.57
+model.layers.1.self_attn.k_proj Weight Hadamard: Kurtosis=1.83, Min=-0.40, Max=0.40
+model.layers.1.self_attn.v_proj Weight Original: Kurtosis=0.28, Min=-0.07, Max=0.07
+model.layers.1.self_attn.v_proj Weight Hadamard: Kurtosis=0.11, Min=-0.07, Max=0.07
+model.layers.1.self_attn.o_proj Weight Original: Kurtosis=8.14, Min=-0.62, Max=0.62
+model.layers.1.self_attn.o_proj Weight Hadamard: Kurtosis=3.94, Min=-0.51, Max=0.51
+model.layers.1.mlp.gate_proj Weight Original: Kurtosis=1.40, Min=-0.59, Max=0.59
+model.layers.1.mlp.gate_proj Weight Hadamard: Kurtosis=0.57, Min=-0.37, Max=0.37
+model.layers.1.mlp.up_proj Weight Original: Kurtosis=0.19, Min=-0.32, Max=0.42
+model.layers.1.mlp.up_proj Weight Hadamard: Kurtosis=0.00, Min=-0.09, Max=0.10
+model.layers.1.mlp.down_proj Weight Original: Kurtosis=5.16, Min=-0.84, Max=0.87
+model.layers.1.mlp.down_proj Weight Hadamard: Kurtosis=0.19, Min=-0.24, Max=0.24
+model.layers.2.self_attn.q_proj Weight Original: Kurtosis=2.75, Min=-0.53, Max=0.53
+model.layers.2.self_attn.q_proj Weight Hadamard: Kurtosis=1.28, Min=-0.25, Max=0.25
+model.layers.2.self_attn.k_proj Weight Original: Kurtosis=1.96, Min=-0.50, Max=0.50
+model.layers.2.self_attn.k_proj Weight Hadamard: Kurtosis=1.28, Min=-0.31, Max=0.32
+model.layers.2.self_attn.v_proj Weight Original: Kurtosis=0.31, Min=-0.06, Max=0.06
+model.layers.2.self_attn.v_proj Weight Hadamard: Kurtosis=0.13, Min=-0.05, Max=0.05
+model.layers.2.self_attn.o_proj Weight Original: Kurtosis=3.94, Min=-0.43, Max=0.58
+model.layers.2.self_attn.o_proj Weight Hadamard: Kurtosis=1.33, Min=-0.30, Max=0.30
+model.layers.2.mlp.gate_proj Weight Original: Kurtosis=0.25, Min=-0.40, Max=0.40
+model.layers.2.mlp.gate_proj Weight Hadamard: Kurtosis=0.07, Min=-0.20, Max=0.22
+model.layers.2.mlp.up_proj Weight Original: Kurtosis=0.11, Min=-0.29, Max=0.30
+model.layers.2.mlp.up_proj Weight Hadamard: Kurtosis=0.00, Min=-0.10, Max=0.10
+model.layers.2.mlp.down_proj Weight Original: Kurtosis=0.75, Min=-0.75, Max=0.75
+model.layers.2.mlp.down_proj Weight Hadamard: Kurtosis=0.06, Min=-0.16, Max=0.17
+model.layers.3.self_attn.q_proj Weight Original: Kurtosis=2.37, Min=-0.53, Max=0.61
+model.layers.3.self_attn.q_proj Weight Hadamard: Kurtosis=1.34, Min=-0.22, Max=0.25
+model.layers.3.self_attn.k_proj Weight Original: Kurtosis=1.87, Min=-0.45, Max=0.47
+model.layers.3.self_attn.k_proj Weight Hadamard: Kurtosis=1.26, Min=-0.33, Max=0.33
+model.layers.3.self_attn.v_proj Weight Original: Kurtosis=0.24, Min=-0.07, Max=0.11
+model.layers.3.self_attn.v_proj Weight Hadamard: Kurtosis=0.08, Min=-0.07, Max=0.07
+model.layers.3.self_attn.o_proj Weight Original: Kurtosis=1.27, Min=-0.29, Max=0.31
+model.layers.3.self_attn.o_proj Weight Hadamard: Kurtosis=0.71, Min=-0.22, Max=0.26
+model.layers.3.mlp.gate_proj Weight Original: Kurtosis=0.26, Min=-0.25, Max=0.33
+model.layers.3.mlp.gate_proj Weight Hadamard: Kurtosis=0.20, Min=-0.17, Max=0.17
+model.layers.3.mlp.up_proj Weight Original: Kurtosis=0.08, Min=-0.23, Max=0.24
+model.layers.3.mlp.up_proj Weight Hadamard: Kurtosis=0.01, Min=-0.09, Max=0.09
+model.layers.3.mlp.down_proj Weight Original: Kurtosis=0.62, Min=-0.60, Max=0.60
+model.layers.3.mlp.down_proj Weight Hadamard: Kurtosis=0.09, Min=-0.17, Max=0.18
+model.layers.4.self_attn.q_proj Weight Original: Kurtosis=1.45, Min=-0.38, Max=0.38
+model.layers.4.self_attn.q_proj Weight Hadamard: Kurtosis=0.63, Min=-0.18, Max=0.18
+model.layers.4.self_attn.k_proj Weight Original: Kurtosis=1.30, Min=-0.43, Max=0.43
+model.layers.4.self_attn.k_proj Weight Hadamard: Kurtosis=1.04, Min=-0.29, Max=0.29
+model.layers.4.self_attn.v_proj Weight Original: Kurtosis=0.28, Min=-0.08, Max=0.08
+model.layers.4.self_attn.v_proj Weight Hadamard: Kurtosis=0.15, Min=-0.06, Max=0.07
+model.layers.4.self_attn.o_proj Weight Original: Kurtosis=1.26, Min=-0.44, Max=0.44
+model.layers.4.self_attn.o_proj Weight Hadamard: Kurtosis=0.99, Min=-0.27, Max=0.27
+model.layers.4.mlp.gate_proj Weight Original: Kurtosis=0.27, Min=-0.40, Max=0.40
+model.layers.4.mlp.gate_proj Weight Hadamard: Kurtosis=0.14, Min=-0.19, Max=0.19
+model.layers.4.mlp.up_proj Weight Original: Kurtosis=0.07, Min=-0.28, Max=0.28
+model.layers.4.mlp.up_proj Weight Hadamard: Kurtosis=-0.00, Min=-0.09, Max=0.09
+model.layers.4.mlp.down_proj Weight Original: Kurtosis=0.45, Min=-0.57, Max=0.57
+model.layers.4.mlp.down_proj Weight Hadamard: Kurtosis=0.09, Min=-0.18, Max=0.18
+model.layers.5.self_attn.q_proj Weight Original: Kurtosis=1.67, Min=-0.43, Max=0.46
+model.layers.5.self_attn.q_proj Weight Hadamard: Kurtosis=0.80, Min=-0.20, Max=0.21
+model.layers.5.self_attn.k_proj Weight Original: Kurtosis=1.30, Min=-0.41, Max=0.41
+model.layers.5.self_attn.k_proj Weight Hadamard: Kurtosis=1.03, Min=-0.33, Max=0.33
+model.layers.5.self_attn.v_proj Weight Original: Kurtosis=0.11, Min=-0.06, Max=0.07
+model.layers.5.self_attn.v_proj Weight Hadamard: Kurtosis=0.02, Min=-0.06, Max=0.06
+model.layers.5.self_attn.o_proj Weight Original: Kurtosis=1.41, Min=-0.32, Max=0.39
+model.layers.5.self_attn.o_proj Weight Hadamard: Kurtosis=0.84, Min=-0.25, Max=0.29
+model.layers.5.mlp.gate_proj Weight Original: Kurtosis=0.21, Min=-0.30, Max=0.30
+model.layers.5.mlp.gate_proj Weight Hadamard: Kurtosis=0.10, Min=-0.17, Max=0.17
+model.layers.5.mlp.up_proj Weight Original: Kurtosis=0.11, Min=-0.27, Max=0.36
+model.layers.5.mlp.up_proj Weight Hadamard: Kurtosis=0.00, Min=-0.10, Max=0.10
+model.layers.5.mlp.down_proj Weight Original: Kurtosis=0.40, Min=-0.51, Max=0.54
+model.layers.5.mlp.down_proj Weight Hadamard: Kurtosis=0.07, Min=-0.16, Max=0.18
+model.layers.6.self_attn.q_proj Weight Original: Kurtosis=1.65, Min=-0.45, Max=0.45
+model.layers.6.self_attn.q_proj Weight Hadamard: Kurtosis=0.91, Min=-0.22, Max=0.22
+model.layers.6.self_attn.k_proj Weight Original: Kurtosis=1.23, Min=-0.47, Max=0.47
+model.layers.6.self_attn.k_proj Weight Hadamard: Kurtosis=0.97, Min=-0.33, Max=0.34
+model.layers.6.self_attn.v_proj Weight Original: Kurtosis=0.23, Min=-0.06, Max=0.06
+model.layers.6.self_attn.v_proj Weight Hadamard: Kurtosis=0.12, Min=-0.07, Max=0.07
+model.layers.6.self_attn.o_proj Weight Original: Kurtosis=0.95, Min=-0.34, Max=0.46
+model.layers.6.self_attn.o_proj Weight Hadamard: Kurtosis=0.50, Min=-0.21, Max=0.23
+model.layers.6.mlp.gate_proj Weight Original: Kurtosis=3.35, Min=-0.59, Max=0.67
+model.layers.6.mlp.gate_proj Weight Hadamard: Kurtosis=2.75, Min=-0.60, Max=0.60
+model.layers.6.mlp.up_proj Weight Original: Kurtosis=0.21, Min=-0.40, Max=0.40
+model.layers.6.mlp.up_proj Weight Hadamard: Kurtosis=0.01, Min=-0.11, Max=0.11
+model.layers.6.mlp.down_proj Weight Original: Kurtosis=1.22, Min=-0.75, Max=0.75
+model.layers.6.mlp.down_proj Weight Hadamard: Kurtosis=0.06, Min=-0.17, Max=0.19
+model.layers.7.self_attn.q_proj Weight Original: Kurtosis=1.68, Min=-0.44, Max=0.47
+model.layers.7.self_attn.q_proj Weight Hadamard: Kurtosis=0.93, Min=-0.19, Max=0.19
+model.layers.7.self_attn.k_proj Weight Original: Kurtosis=1.22, Min=-0.32, Max=0.38
+model.layers.7.self_attn.k_proj Weight Hadamard: Kurtosis=1.05, Min=-0.29, Max=0.32
+model.layers.7.self_attn.v_proj Weight Original: Kurtosis=0.29, Min=-0.13, Max=0.13
+model.layers.7.self_attn.v_proj Weight Hadamard: Kurtosis=0.06, Min=-0.06, Max=0.06
+model.layers.7.self_attn.o_proj Weight Original: Kurtosis=23.08, Min=-0.70, Max=0.71
+model.layers.7.self_attn.o_proj Weight Hadamard: Kurtosis=62.01, Min=-1.02, Max=1.37
+model.layers.7.mlp.gate_proj Weight Original: Kurtosis=0.60, Min=-0.43, Max=0.43
+model.layers.7.mlp.gate_proj Weight Hadamard: Kurtosis=0.31, Min=-0.23, Max=0.23
+model.layers.7.mlp.up_proj Weight Original: Kurtosis=0.41, Min=-0.56, Max=0.56
+model.layers.7.mlp.up_proj Weight Hadamard: Kurtosis=0.02, Min=-0.10, Max=0.10
+model.layers.7.mlp.down_proj Weight Original: Kurtosis=3.08, Min=-0.95, Max=0.95
+model.layers.7.mlp.down_proj Weight Hadamard: Kurtosis=0.17, Min=-0.21, Max=0.22
+model.layers.8.self_attn.q_proj Weight Original: Kurtosis=1.67, Min=-0.31, Max=0.31
+model.layers.8.self_attn.q_proj Weight Hadamard: Kurtosis=1.29, Min=-0.22, Max=0.22
+model.layers.8.self_attn.k_proj Weight Original: Kurtosis=1.50, Min=-0.37, Max=0.42
+model.layers.8.self_attn.k_proj Weight Hadamard: Kurtosis=1.16, Min=-0.30, Max=0.30
+model.layers.8.self_attn.v_proj Weight Original: Kurtosis=0.35, Min=-0.06, Max=0.06
+model.layers.8.self_attn.v_proj Weight Hadamard: Kurtosis=0.16, Min=-0.05, Max=0.05
+model.layers.8.self_attn.o_proj Weight Original: Kurtosis=0.81, Min=-0.23, Max=0.42
+model.layers.8.self_attn.o_proj Weight Hadamard: Kurtosis=0.68, Min=-0.21, Max=0.21
+model.layers.8.mlp.gate_proj Weight Original: Kurtosis=0.52, Min=-0.40, Max=0.50
+model.layers.8.mlp.gate_proj Weight Hadamard: Kurtosis=0.23, Min=-0.19, Max=0.20
+model.layers.8.mlp.up_proj Weight Original: Kurtosis=0.09, Min=-0.17, Max=0.27
+model.layers.8.mlp.up_proj Weight Hadamard: Kurtosis=0.01, Min=-0.09, Max=0.10
+model.layers.8.mlp.down_proj Weight Original: Kurtosis=1.18, Min=-0.87, Max=0.87
+model.layers.8.mlp.down_proj Weight Hadamard: Kurtosis=0.06, Min=-0.17, Max=0.18
+model.layers.9.self_attn.q_proj Weight Original: Kurtosis=1.52, Min=-0.37, Max=0.37
+model.layers.9.self_attn.q_proj Weight Hadamard: Kurtosis=1.08, Min=-0.21, Max=0.21
+model.layers.9.self_attn.k_proj Weight Original: Kurtosis=0.87, Min=-0.34, Max=0.39
+model.layers.9.self_attn.k_proj Weight Hadamard: Kurtosis=0.69, Min=-0.26, Max=0.30
+model.layers.9.self_attn.v_proj Weight Original: Kurtosis=0.36, Min=-0.07, Max=0.07
+model.layers.9.self_attn.v_proj Weight Hadamard: Kurtosis=0.15, Min=-0.07, Max=0.07
+model.layers.9.self_attn.o_proj Weight Original: Kurtosis=1.14, Min=-0.28, Max=0.28
+model.layers.9.self_attn.o_proj Weight Hadamard: Kurtosis=0.57, Min=-0.23, Max=0.23
+model.layers.9.mlp.gate_proj Weight Original: Kurtosis=0.41, Min=-0.34, Max=0.34
+model.layers.9.mlp.gate_proj Weight Hadamard: Kurtosis=0.22, Min=-0.17, Max=0.18
+model.layers.9.mlp.up_proj Weight Original: Kurtosis=0.14, Min=-0.29, Max=0.29
+model.layers.9.mlp.up_proj Weight Hadamard: Kurtosis=0.02, Min=-0.10, Max=0.10
+model.layers.9.mlp.down_proj Weight Original: Kurtosis=1.16, Min=-0.67, Max=0.67
+model.layers.9.mlp.down_proj Weight Hadamard: Kurtosis=0.09, Min=-0.21, Max=0.21
+model.layers.10.self_attn.q_proj Weight Original: Kurtosis=2.09, Min=-0.36, Max=0.40
+model.layers.10.self_attn.q_proj Weight Hadamard: Kurtosis=1.49, Min=-0.19, Max=0.22
+model.layers.10.self_attn.k_proj Weight Original: Kurtosis=2.50, Min=-0.43, Max=0.43
+model.layers.10.self_attn.k_proj Weight Hadamard: Kurtosis=1.99, Min=-0.33, Max=0.33
+model.layers.10.self_attn.v_proj Weight Original: Kurtosis=0.48, Min=-0.06, Max=0.06
+model.layers.10.self_attn.v_proj Weight Hadamard: Kurtosis=0.17, Min=-0.06, Max=0.06
+model.layers.10.self_attn.o_proj Weight Original: Kurtosis=0.84, Min=-0.24, Max=0.38
+model.layers.10.self_attn.o_proj Weight Hadamard: Kurtosis=1.44, Min=-0.20, Max=0.21
+model.layers.10.mlp.gate_proj Weight Original: Kurtosis=0.44, Min=-0.28, Max=0.29
+model.layers.10.mlp.gate_proj Weight Hadamard: Kurtosis=0.38, Min=-0.18, Max=0.18
+model.layers.10.mlp.up_proj Weight Original: Kurtosis=0.10, Min=-0.24, Max=0.28
+model.layers.10.mlp.up_proj Weight Hadamard: Kurtosis=0.02, Min=-0.10, Max=0.10
+model.layers.10.mlp.down_proj Weight Original: Kurtosis=0.50, Min=-0.40, Max=0.55
+model.layers.10.mlp.down_proj Weight Hadamard: Kurtosis=0.09, Min=-0.18, Max=0.18
+model.layers.11.self_attn.q_proj Weight Original: Kurtosis=1.65, Min=-0.35, Max=0.35
+model.layers.11.self_attn.q_proj Weight Hadamard: Kurtosis=1.35, Min=-0.25, Max=0.25
+model.layers.11.self_attn.k_proj Weight Original: Kurtosis=1.71, Min=-0.41, Max=0.53
+model.layers.11.self_attn.k_proj Weight Hadamard: Kurtosis=1.27, Min=-0.31, Max=0.31
+model.layers.11.self_attn.v_proj Weight Original: Kurtosis=0.35, Min=-0.07, Max=0.08
+model.layers.11.self_attn.v_proj Weight Hadamard: Kurtosis=0.18, Min=-0.07, Max=0.08
+model.layers.11.self_attn.o_proj Weight Original: Kurtosis=0.66, Min=-0.32, Max=0.32
+model.layers.11.self_attn.o_proj Weight Hadamard: Kurtosis=0.54, Min=-0.17, Max=0.20
+model.layers.11.mlp.gate_proj Weight Original: Kurtosis=0.61, Min=-0.41, Max=0.46
+model.layers.11.mlp.gate_proj Weight Hadamard: Kurtosis=0.46, Min=-0.19, Max=0.19
+model.layers.11.mlp.up_proj Weight Original: Kurtosis=0.08, Min=-0.22, Max=0.27
+model.layers.11.mlp.up_proj Weight Hadamard: Kurtosis=0.02, Min=-0.10, Max=0.10
+model.layers.11.mlp.down_proj Weight Original: Kurtosis=0.35, Min=-0.39, Max=0.53
+model.layers.11.mlp.down_proj Weight Hadamard: Kurtosis=0.08, Min=-0.17, Max=0.17
+model.layers.12.self_attn.q_proj Weight Original: Kurtosis=1.58, Min=-0.44, Max=0.44
+model.layers.12.self_attn.q_proj Weight Hadamard: Kurtosis=1.17, Min=-0.21, Max=0.21
+model.layers.12.self_attn.k_proj Weight Original: Kurtosis=1.17, Min=-0.38, Max=0.38
+model.layers.12.self_attn.k_proj Weight Hadamard: Kurtosis=0.97, Min=-0.32, Max=0.33
+model.layers.12.self_attn.v_proj Weight Original: Kurtosis=0.21, Min=-0.06, Max=0.06
+model.layers.12.self_attn.v_proj Weight Hadamard: Kurtosis=0.05, Min=-0.06, Max=0.06
+model.layers.12.self_attn.o_proj Weight Original: Kurtosis=0.46, Min=-0.21, Max=0.23
+model.layers.12.self_attn.o_proj Weight Hadamard: Kurtosis=0.50, Min=-0.18, Max=0.18
+model.layers.12.mlp.gate_proj Weight Original: Kurtosis=0.84, Min=-0.41, Max=0.41
+model.layers.12.mlp.gate_proj Weight Hadamard: Kurtosis=0.66, Min=-0.22, Max=0.24
+model.layers.12.mlp.up_proj Weight Original: Kurtosis=0.11, Min=-0.20, Max=0.28
+model.layers.12.mlp.up_proj Weight Hadamard: Kurtosis=0.03, Min=-0.10, Max=0.10
+model.layers.12.mlp.down_proj Weight Original: Kurtosis=0.56, Min=-0.50, Max=0.50
+model.layers.12.mlp.down_proj Weight Hadamard: Kurtosis=0.12, Min=-0.17, Max=0.17
+model.layers.13.self_attn.q_proj Weight Original: Kurtosis=1.82, Min=-0.33, Max=0.41
+model.layers.13.self_attn.q_proj Weight Hadamard: Kurtosis=1.51, Min=-0.22, Max=0.22
+model.layers.13.self_attn.k_proj Weight Original: Kurtosis=1.65, Min=-0.41, Max=0.41
+model.layers.13.self_attn.k_proj Weight Hadamard: Kurtosis=1.56, Min=-0.32, Max=0.33
+model.layers.13.self_attn.v_proj Weight Original: Kurtosis=0.21, Min=-0.06, Max=0.06
+model.layers.13.self_attn.v_proj Weight Hadamard: Kurtosis=0.10, Min=-0.07, Max=0.07
+model.layers.13.self_attn.o_proj Weight Original: Kurtosis=0.96, Min=-0.38, Max=0.38
+model.layers.13.self_attn.o_proj Weight Hadamard: Kurtosis=0.80, Min=-0.17, Max=0.17
+model.layers.13.mlp.gate_proj Weight Original: Kurtosis=0.86, Min=-0.34, Max=0.34
+model.layers.13.mlp.gate_proj Weight Hadamard: Kurtosis=0.69, Min=-0.24, Max=0.26
+model.layers.13.mlp.up_proj Weight Original: Kurtosis=0.16, Min=-0.25, Max=0.25
+model.layers.13.mlp.up_proj Weight Hadamard: Kurtosis=0.04, Min=-0.10, Max=0.10
+model.layers.13.mlp.down_proj Weight Original: Kurtosis=0.39, Min=-0.55, Max=0.55
+model.layers.13.mlp.down_proj Weight Hadamard: Kurtosis=0.08, Min=-0.18, Max=0.18
+model.layers.14.self_attn.q_proj Weight Original: Kurtosis=2.87, Min=-0.54, Max=0.54
+model.layers.14.self_attn.q_proj Weight Hadamard: Kurtosis=2.32, Min=-0.25, Max=0.25
+model.layers.14.self_attn.k_proj Weight Original: Kurtosis=1.53, Min=-0.41, Max=0.41
+model.layers.14.self_attn.k_proj Weight Hadamard: Kurtosis=1.15, Min=-0.28, Max=0.28
+model.layers.14.self_attn.v_proj Weight Original: Kurtosis=0.64, Min=-0.13, Max=0.13
+model.layers.14.self_attn.v_proj Weight Hadamard: Kurtosis=0.06, Min=-0.06, Max=0.06
+model.layers.14.self_attn.o_proj Weight Original: Kurtosis=0.75, Min=-0.27, Max=0.27
+model.layers.14.self_attn.o_proj Weight Hadamard: Kurtosis=0.38, Min=-0.16, Max=0.16
+model.layers.14.mlp.gate_proj Weight Original: Kurtosis=0.98, Min=-0.25, Max=0.46
+model.layers.14.mlp.gate_proj Weight Hadamard: Kurtosis=0.86, Min=-0.25, Max=0.25
+model.layers.14.mlp.up_proj Weight Original: Kurtosis=0.14, Min=-0.27, Max=0.27
+model.layers.14.mlp.up_proj Weight Hadamard: Kurtosis=0.04, Min=-0.10, Max=0.10
+model.layers.14.mlp.down_proj Weight Original: Kurtosis=0.53, Min=-0.58, Max=0.58
+model.layers.14.mlp.down_proj Weight Hadamard: Kurtosis=0.09, Min=-0.16, Max=0.18
+model.layers.15.self_attn.q_proj Weight Original: Kurtosis=1.77, Min=-0.41, Max=0.50
+model.layers.15.self_attn.q_proj Weight Hadamard: Kurtosis=1.28, Min=-0.19, Max=0.20
+model.layers.15.self_attn.k_proj Weight Original: Kurtosis=1.47, Min=-0.46, Max=0.46
+model.layers.15.self_attn.k_proj Weight Hadamard: Kurtosis=0.99, Min=-0.28, Max=0.29
+model.layers.15.self_attn.v_proj Weight Original: Kurtosis=0.67, Min=-0.13, Max=0.13
+model.layers.15.self_attn.v_proj Weight Hadamard: Kurtosis=0.22, Min=-0.07, Max=0.07
+model.layers.15.self_attn.o_proj Weight Original: Kurtosis=0.87, Min=-0.29, Max=0.36
+model.layers.15.self_attn.o_proj Weight Hadamard: Kurtosis=0.93, Min=-0.16, Max=0.21
+model.layers.15.mlp.gate_proj Weight Original: Kurtosis=0.82, Min=-0.27, Max=0.33
+model.layers.15.mlp.gate_proj Weight Hadamard: Kurtosis=0.71, Min=-0.25, Max=0.25
+model.layers.15.mlp.up_proj Weight Original: Kurtosis=0.17, Min=-0.25, Max=0.37
+model.layers.15.mlp.up_proj Weight Hadamard: Kurtosis=0.05, Min=-0.12, Max=0.12
+model.layers.15.mlp.down_proj Weight Original: Kurtosis=0.79, Min=-0.45, Max=0.66
+model.layers.15.mlp.down_proj Weight Hadamard: Kurtosis=0.08, Min=-0.18, Max=0.18
+model.layers.16.self_attn.q_proj Weight Original: Kurtosis=1.93, Min=-0.63, Max=0.63
+model.layers.16.self_attn.q_proj Weight Hadamard: Kurtosis=1.32, Min=-0.23, Max=0.23
+model.layers.16.self_attn.k_proj Weight Original: Kurtosis=1.72, Min=-0.43, Max=0.48
+model.layers.16.self_attn.k_proj Weight Hadamard: Kurtosis=1.36, Min=-0.32, Max=0.34
+model.layers.16.self_attn.v_proj Weight Original: Kurtosis=0.28, Min=-0.10, Max=0.10
+model.layers.16.self_attn.v_proj Weight Hadamard: Kurtosis=0.16, Min=-0.08, Max=0.08
+model.layers.16.self_attn.o_proj Weight Original: Kurtosis=0.69, Min=-0.29, Max=0.31
+model.layers.16.self_attn.o_proj Weight Hadamard: Kurtosis=0.37, Min=-0.19, Max=0.22
+model.layers.16.mlp.gate_proj Weight Original: Kurtosis=0.68, Min=-0.36, Max=0.38
+model.layers.16.mlp.gate_proj Weight Hadamard: Kurtosis=0.52, Min=-0.22, Max=0.22
+model.layers.16.mlp.up_proj Weight Original: Kurtosis=0.16, Min=-0.42, Max=0.42
+model.layers.16.mlp.up_proj Weight Hadamard: Kurtosis=0.04, Min=-0.10, Max=0.10
+model.layers.16.mlp.down_proj Weight Original: Kurtosis=0.80, Min=-0.75, Max=0.75
+model.layers.16.mlp.down_proj Weight Hadamard: Kurtosis=0.06, Min=-0.16, Max=0.16
+model.layers.17.self_attn.q_proj Weight Original: Kurtosis=1.83, Min=-0.42, Max=0.45
+model.layers.17.self_attn.q_proj Weight Hadamard: Kurtosis=1.19, Min=-0.20, Max=0.22
+model.layers.17.self_attn.k_proj Weight Original: Kurtosis=1.38, Min=-0.46, Max=0.50
+model.layers.17.self_attn.k_proj Weight Hadamard: Kurtosis=0.96, Min=-0.33, Max=0.33
+model.layers.17.self_attn.v_proj Weight Original: Kurtosis=0.20, Min=-0.10, Max=0.10
+model.layers.17.self_attn.v_proj Weight Hadamard: Kurtosis=0.08, Min=-0.09, Max=0.10
+model.layers.17.self_attn.o_proj Weight Original: Kurtosis=0.56, Min=-0.35, Max=0.35
+model.layers.17.self_attn.o_proj Weight Hadamard: Kurtosis=0.35, Min=-0.26, Max=0.26
+model.layers.17.mlp.gate_proj Weight Original: Kurtosis=0.73, Min=-0.32, Max=0.32
+model.layers.17.mlp.gate_proj Weight Hadamard: Kurtosis=0.64, Min=-0.20, Max=0.20
+model.layers.17.mlp.up_proj Weight Original: Kurtosis=0.13, Min=-0.25, Max=0.34
+model.layers.17.mlp.up_proj Weight Hadamard: Kurtosis=0.04, Min=-0.12, Max=0.13
+model.layers.17.mlp.down_proj Weight Original: Kurtosis=0.63, Min=-0.59, Max=0.59
+model.layers.17.mlp.down_proj Weight Hadamard: Kurtosis=0.05, Min=-0.15, Max=0.15
+model.layers.18.self_attn.q_proj Weight Original: Kurtosis=1.99, Min=-0.52, Max=0.52
+model.layers.18.self_attn.q_proj Weight Hadamard: Kurtosis=1.43, Min=-0.21, Max=0.21
+model.layers.18.self_attn.k_proj Weight Original: Kurtosis=1.24, Min=-0.38, Max=0.38
+model.layers.18.self_attn.k_proj Weight Hadamard: Kurtosis=0.74, Min=-0.27, Max=0.27
+model.layers.18.self_attn.v_proj Weight Original: Kurtosis=0.32, Min=-0.11, Max=0.12
+model.layers.18.self_attn.v_proj Weight Hadamard: Kurtosis=0.12, Min=-0.09, Max=0.09
+model.layers.18.self_attn.o_proj Weight Original: Kurtosis=0.77, Min=-0.36, Max=0.44
+model.layers.18.self_attn.o_proj Weight Hadamard: Kurtosis=0.50, Min=-0.22, Max=0.26
+model.layers.18.mlp.gate_proj Weight Original: Kurtosis=0.66, Min=-0.44, Max=0.44
+model.layers.18.mlp.gate_proj Weight Hadamard: Kurtosis=0.55, Min=-0.22, Max=0.22
+model.layers.18.mlp.up_proj Weight Original: Kurtosis=0.07, Min=-0.31, Max=0.31
+model.layers.18.mlp.up_proj Weight Hadamard: Kurtosis=0.02, Min=-0.10, Max=0.10
+model.layers.18.mlp.down_proj Weight Original: Kurtosis=0.39, Min=-0.43, Max=0.64
+model.layers.18.mlp.down_proj Weight Hadamard: Kurtosis=0.04, Min=-0.16, Max=0.16
+model.layers.19.self_attn.q_proj Weight Original: Kurtosis=1.51, Min=-0.40, Max=0.44
+model.layers.19.self_attn.q_proj Weight Hadamard: Kurtosis=0.89, Min=-0.22, Max=0.22
+model.layers.19.self_attn.k_proj Weight Original: Kurtosis=0.91, Min=-0.37, Max=0.48
+model.layers.19.self_attn.k_proj Weight Hadamard: Kurtosis=0.58, Min=-0.25, Max=0.27
+model.layers.19.self_attn.v_proj Weight Original: Kurtosis=0.20, Min=-0.14, Max=0.14
+model.layers.19.self_attn.v_proj Weight Hadamard: Kurtosis=0.10, Min=-0.09, Max=0.09
+model.layers.19.self_attn.o_proj Weight Original: Kurtosis=1.45, Min=-0.34, Max=0.44
+model.layers.19.self_attn.o_proj Weight Hadamard: Kurtosis=1.50, Min=-0.38, Max=0.57
+model.layers.19.mlp.gate_proj Weight Original: Kurtosis=0.65, Min=-0.37, Max=0.38
+model.layers.19.mlp.gate_proj Weight Hadamard: Kurtosis=0.47, Min=-0.26, Max=0.26
+model.layers.19.mlp.up_proj Weight Original: Kurtosis=0.20, Min=-0.31, Max=0.40
+model.layers.19.mlp.up_proj Weight Hadamard: Kurtosis=0.11, Min=-0.26, Max=0.26
+model.layers.19.mlp.down_proj Weight Original: Kurtosis=0.54, Min=-0.62, Max=0.66
+model.layers.19.mlp.down_proj Weight Hadamard: Kurtosis=0.03, Min=-0.12, Max=0.13
+model.layers.20.self_attn.q_proj Weight Original: Kurtosis=2.61, Min=-0.46, Max=0.47
+model.layers.20.self_attn.q_proj Weight Hadamard: Kurtosis=1.08, Min=-0.19, Max=0.20
+model.layers.20.self_attn.k_proj Weight Original: Kurtosis=3.01, Min=-0.52, Max=0.52
+model.layers.20.self_attn.k_proj Weight Hadamard: Kurtosis=1.02, Min=-0.20, Max=0.20
+model.layers.20.self_attn.v_proj Weight Original: Kurtosis=1.67, Min=-0.28, Max=0.28
+model.layers.20.self_attn.v_proj Weight Hadamard: Kurtosis=1.12, Min=-0.18, Max=0.18
+model.layers.20.self_attn.o_proj Weight Original: Kurtosis=2.33, Min=-0.74, Max=0.74
+model.layers.20.self_attn.o_proj Weight Hadamard: Kurtosis=1.39, Min=-0.41, Max=0.52
+model.layers.20.mlp.gate_proj Weight Original: Kurtosis=0.49, Min=-0.30, Max=0.43
+model.layers.20.mlp.gate_proj Weight Hadamard: Kurtosis=0.36, Min=-0.18, Max=0.18
+model.layers.20.mlp.up_proj Weight Original: Kurtosis=0.09, Min=-0.23, Max=0.25
+model.layers.20.mlp.up_proj Weight Hadamard: Kurtosis=0.03, Min=-0.10, Max=0.11
+model.layers.20.mlp.down_proj Weight Original: Kurtosis=0.53, Min=-0.60, Max=0.60
+model.layers.20.mlp.down_proj Weight Hadamard: Kurtosis=0.02, Min=-0.12, Max=0.13
+model.layers.21.self_attn.q_proj Weight Original: Kurtosis=2.52, Min=-0.54, Max=0.55
+model.layers.21.self_attn.q_proj Weight Hadamard: Kurtosis=0.82, Min=-0.18, Max=0.20
+model.layers.21.self_attn.k_proj Weight Original: Kurtosis=1.25, Min=-0.42, Max=0.44
+model.layers.21.self_attn.k_proj Weight Hadamard: Kurtosis=0.55, Min=-0.25, Max=0.25
+model.layers.21.self_attn.v_proj Weight Original: Kurtosis=0.28, Min=-0.13, Max=0.13
+model.layers.21.self_attn.v_proj Weight Hadamard: Kurtosis=0.19, Min=-0.13, Max=0.13
+model.layers.21.self_attn.o_proj Weight Original: Kurtosis=0.98, Min=-0.27, Max=0.43
+model.layers.21.self_attn.o_proj Weight Hadamard: Kurtosis=0.93, Min=-0.33, Max=0.33
+model.layers.21.mlp.gate_proj Weight Original: Kurtosis=1.35, Min=-0.53, Max=0.61
+model.layers.21.mlp.gate_proj Weight Hadamard: Kurtosis=1.16, Min=-0.38, Max=0.43
+model.layers.21.mlp.up_proj Weight Original: Kurtosis=1.19, Min=-0.70, Max=0.70
+model.layers.21.mlp.up_proj Weight Hadamard: Kurtosis=0.63, Min=-0.38, Max=0.38
+model.layers.21.mlp.down_proj Weight Original: Kurtosis=3.54, Min=-1.12, Max=1.12
+model.layers.21.mlp.down_proj Weight Hadamard: Kurtosis=0.07, Min=-0.14, Max=0.16

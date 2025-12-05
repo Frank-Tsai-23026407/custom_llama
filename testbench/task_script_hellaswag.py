@@ -42,6 +42,151 @@ def process_docs(dataset: datasets.Dataset) -> datasets.Dataset:
 
     return dataset.map(_process_doc)
 
+def task_script_hellaswag(args, tokenizer, model_single_step, device, print_first_5_examples=False):
+
+    # Load HellaSwag dataset
+    dataset = load_dataset("Rowan/hellaswag", split="validation")
+    
+    # Limit dataset size if max_samples is specified
+    if args.max_samples is not None:
+        dataset = dataset.select(range(min(args.max_samples, len(dataset))))
+        print(f"Using {len(dataset)} samples for quick testing")
+    
+    dataset_sample = dataset
+    dataset_sample = process_docs(dataset_sample)
+
+    # Function to format HellaSwag questions for TinyLlama
+    def format_question(example):
+        context = example["query"]
+        endings = example["choices"]
+        
+        return {
+            "context": context,
+            "choices": endings,
+            "label": example["gold"]}
+    formatted_dataset = dataset_sample.map(format_question)
+
+
+    # DataLoader for batching
+    batch_size = 1 # Process one question at a time for simplicity
+    data_loader = DataLoader(formatted_dataset, batch_size=batch_size)
+
+    correct_predictions_acc = 0
+    correct_predictions_acc_norm = 0
+    total_questions = 0
+    
+    for batch in tqdm(data_loader, desc="Evaluating HellaSwag"):
+        contexts = batch["context"]
+        choices_list = batch["choices"] # This will be a list of lists of strings
+        true_labels = batch["label"]
+
+        # Get ground truth logits from the original model
+        with torch.no_grad():
+            for i in range(len(contexts)): # Iterate through batch (batch_size is 1 here)
+                context = contexts[i]
+                choices = [c for c in choices_list] # Flatten choices
+                true_label = true_labels[i].item()
+
+                # Calculate log-likelihood for each choice
+                choice_log_likelihoods_acc = []
+                choice_log_likelihoods_acc_norm = []
+                for choice_text in choices:
+                    full_text = context + " " + choice_text[0]
+                    if full_text[-1] == ".":
+                        full_text = full_text[:-1]
+                    
+                    # Tokenize the full text (keep the BatchEncoding for char->token mapping)
+                    encoding = tokenizer(full_text, return_tensors="pt", truncation=True, add_special_tokens=False)
+                    # Move input tensors to device
+                    tensor_inputs = TU.tokenize_to_device(tokenizer, full_text, device, add_special_tokens=False)
+
+                    # Log input ids (from tensor_inputs) and keep a reference to input_ids tensor
+                    # with open("mine.txt", "a") as f:
+                    #     f.write(f"{tensor_inputs['input_ids']}\n")
+                    input_ids = tensor_inputs['input_ids']
+
+                    # Get model outputs
+                    # pass the tensor inputs (moved to device) into the model
+                    # outputs = my_model.single_step(tensor_inputs)
+                    # my_model.reset_kv_cache()
+                    outputs = model_single_step(tensor_inputs)
+                    
+                    # t_values, t_indices = outputs[0].max(dim=1)  # Get both values and indices
+                    # t_values = t_values.squeeze()
+                    # arr = t_values.cpu().to(torch.float32).numpy()  # Use the values
+                    # with open('mine.txt', 'a') as f:      # 'a' = append text mode
+                    #     f.write('\n### tensor shape: {}\n'.format(arr.shape))  # optional separator/header
+                    #     np.savetxt(f, arr, fmt='%.6f', delimiter=' ')
+                        
+                    
+                    # Calculate the negative log-likelihood (NLL)
+                    # Shift logits and labels for language modeling
+                    shift_logits, shift_labels = TU.get_shifted(outputs, input_ids)
+                    loss = TU.per_token_cross_entropy(shift_logits, shift_labels)
+                    
+                    context_len_chars = len(context)
+                    choice_start_char_idx = context_len_chars + 1 # account for the space
+
+                    # Find the token index corresponding to the start of the choice.
+                    # `tokenized_input` has a batch size of 1, so we use index 0.
+                    # Use the original encoding (BatchEncoding) for char->token mapping
+                    continuation_start_token_idx = encoding.char_to_token(0, choice_start_char_idx)
+
+                    # The loss tensor is shifted by one from the input_ids. loss[k] is for token k+1.
+                    # We want the loss for tokens from continuation_start_token_idx onwards.
+                    # So, the slice starts at continuation_start_token_idx - 1.
+                    if continuation_start_token_idx is not None:
+                        continuation_loss = loss[continuation_start_token_idx - 1:]
+                    else:
+                        # This case means the choice is empty or doesn't produce tokens.
+                        continuation_loss = torch.tensor([], device=loss.device)
+
+                    # Score for 'acc' (Unnormalized Log-Likelihood)
+                    if continuation_loss.numel() > 0:
+                        sum_loss = continuation_loss.sum().item()
+                    else:
+                        sum_loss = float('inf')
+                    
+                    # Calculate the byte length of the choice text for normalization
+                    choice_text_str = choice_text[0]
+                    choice_byte_length = len(choice_text_str.encode('utf-8'))
+
+                    # Score for 'acc_norm' (Byte-Normalized Log-Likelihood)
+                    norm_loss = sum_loss / choice_byte_length if choice_byte_length > 0 else float('inf')
+                    
+                    # Append Log-Likelihoods (Log-Likelihood = -NLL)
+                    choice_log_likelihoods_acc.append(-sum_loss)
+                    choice_log_likelihoods_acc_norm.append(-norm_loss)
+                    
+                # Predict the choice with the highest log-likelihood
+                predicted_choice_idx_acc = np.argmax(choice_log_likelihoods_acc)
+                predicted_choice_idx_acc_norm = np.argmax(choice_log_likelihoods_acc_norm)
+                predicted_answer_char_acc = chr(65 + predicted_choice_idx_acc)
+                predicted_answer_char_acc_norm = chr(65 + predicted_choice_idx_acc_norm)
+                
+                true_answer_char = chr(65 + true_label)
+
+                if predicted_choice_idx_acc == true_label:
+                    correct_predictions_acc += 1
+                if predicted_choice_idx_acc_norm == true_label:
+                    correct_predictions_acc_norm += 1
+                total_questions += 1
+                
+                if total_questions <= 5 and print_first_5_examples: # Print first 5 examples
+                    print(f"\nContext:\n{context}")
+                    for idx, ch in enumerate(choices):
+                        print(f"{chr(65+idx)}. {ch} (Log-likelihood: {choice_log_likelihoods_acc[idx]:.2f} (acc) {choice_log_likelihoods_acc_norm[idx]:.2f} (acc_norm))")
+                    print(f"True Answer: {true_answer_char}")
+                    print(f"Predicted Answer (acc): {predicted_answer_char_acc}")
+                    print(f"Predicted Answer (acc_norm): {predicted_answer_char_acc_norm}")
+                    print("-" * 30)
+
+    accuracy_acc = correct_predictions_acc / total_questions
+    accuracy_acc_norm = correct_predictions_acc_norm / total_questions
+    
+    return accuracy_acc, accuracy_acc_norm, correct_predictions_acc, correct_predictions_acc_norm, total_questions
+    
+
 def main():
     parser = argparse.ArgumentParser(description="Evaluate a model on HellaSwag with optional BFP quantization.")
     parser.add_argument("--bft", action="store_true", help="Apply Block Floating Point quantization.")
@@ -116,37 +261,6 @@ def main():
     print(f"Using device: {device}")
     dtype = torch.bfloat16
     tokenizer = AutoTokenizer.from_pretrained(model_path)
-
-    # Load HellaSwag dataset
-    dataset = load_dataset("Rowan/hellaswag", split="validation")
-    
-    # Limit dataset size if max_samples is specified
-    if args.max_samples is not None:
-        dataset = dataset.select(range(min(args.max_samples, len(dataset))))
-        print(f"Using {len(dataset)} samples for quick testing")
-    
-    dataset_sample = dataset
-    dataset_sample = process_docs(dataset_sample)
-
-    # Function to format HellaSwag questions for TinyLlama
-    def format_question(example):
-        context = example["query"]
-        endings = example["choices"]
-        
-        return {
-            "context": context,
-            "choices": endings,
-            "label": example["gold"]}
-    formatted_dataset = dataset_sample.map(format_question)
-
-
-    # DataLoader for batching
-    batch_size = 1 # Process one question at a time for simplicity
-    data_loader = DataLoader(formatted_dataset, batch_size=batch_size)
-
-    correct_predictions_acc = 0
-    correct_predictions_acc_norm = 0
-    total_questions = 0
     
     # use my model for evaluation
     # Build kwargs for LlamaMyModel based on backend
@@ -175,114 +289,13 @@ def main():
     
     my_model = LlamaMyModel(**model_kwargs)
 
+    def model_single_step(inputs):
+        outputs = my_model.single_step(inputs)
+        my_model.reset_kv_cache()
+        return outputs
 
-    for batch in tqdm(data_loader, desc="Evaluating HellaSwag"):
-        contexts = batch["context"]
-        choices_list = batch["choices"] # This will be a list of lists of strings
-        true_labels = batch["label"]
+    accuracy_acc, accuracy_acc_norm, correct_predictions_acc, correct_predictions_acc_norm, total_questions = task_script_hellaswag(args, tokenizer, model_single_step, device, print_first_5_examples=True)
 
-        # Get ground truth logits from the original model
-        with torch.no_grad():
-            for i in range(len(contexts)): # Iterate through batch (batch_size is 1 here)
-                context = contexts[i]
-                choices = [c for c in choices_list] # Flatten choices
-                true_label = true_labels[i].item()
-
-                # Calculate log-likelihood for each choice
-                choice_log_likelihoods_acc = []
-                choice_log_likelihoods_acc_norm = []
-                for choice_text in choices:
-                    full_text = context + " " + choice_text[0]
-                    if full_text[-1] == ".":
-                        full_text = full_text[:-1]
-                    
-                    # Tokenize the full text (keep the BatchEncoding for char->token mapping)
-                    encoding = tokenizer(full_text, return_tensors="pt", truncation=True, add_special_tokens=False)
-                    # Move input tensors to device
-                    tensor_inputs = TU.tokenize_to_device(tokenizer, full_text, device, add_special_tokens=False)
-
-                    # Log input ids (from tensor_inputs) and keep a reference to input_ids tensor
-                    # with open("mine.txt", "a") as f:
-                    #     f.write(f"{tensor_inputs['input_ids']}\n")
-                    input_ids = tensor_inputs['input_ids']
-
-                    # Get model outputs
-                    # pass the tensor inputs (moved to device) into the model
-                    outputs = my_model.single_step(tensor_inputs)
-                    my_model.reset_kv_cache()
-                    
-                    t_values, t_indices = outputs[0].max(dim=1)  # Get both values and indices
-                    t_values = t_values.squeeze()
-                    arr = t_values.cpu().to(torch.float32).numpy()  # Use the values
-                    # with open('mine.txt', 'a') as f:      # 'a' = append text mode
-                    #     f.write('\n### tensor shape: {}\n'.format(arr.shape))  # optional separator/header
-                    #     np.savetxt(f, arr, fmt='%.6f', delimiter=' ')
-                        
-                    
-                    # Calculate the negative log-likelihood (NLL)
-                    # Shift logits and labels for language modeling
-                    shift_logits, shift_labels = TU.get_shifted(outputs, input_ids)
-                    loss = TU.per_token_cross_entropy(shift_logits, shift_labels)
-                    
-                    context_len_chars = len(context)
-                    choice_start_char_idx = context_len_chars + 1 # account for the space
-
-                    # Find the token index corresponding to the start of the choice.
-                    # `tokenized_input` has a batch size of 1, so we use index 0.
-                    # Use the original encoding (BatchEncoding) for char->token mapping
-                    continuation_start_token_idx = encoding.char_to_token(0, choice_start_char_idx)
-
-                    # The loss tensor is shifted by one from the input_ids. loss[k] is for token k+1.
-                    # We want the loss for tokens from continuation_start_token_idx onwards.
-                    # So, the slice starts at continuation_start_token_idx - 1.
-                    if continuation_start_token_idx is not None:
-                        continuation_loss = loss[continuation_start_token_idx - 1:]
-                    else:
-                        # This case means the choice is empty or doesn't produce tokens.
-                        continuation_loss = torch.tensor([], device=loss.device)
-
-                    # Score for 'acc' (Unnormalized Log-Likelihood)
-                    if continuation_loss.numel() > 0:
-                        sum_loss = continuation_loss.sum().item()
-                    else:
-                        sum_loss = float('inf')
-                    
-                    # Calculate the byte length of the choice text for normalization
-                    choice_text_str = choice_text[0]
-                    choice_byte_length = len(choice_text_str.encode('utf-8'))
-
-                    # Score for 'acc_norm' (Byte-Normalized Log-Likelihood)
-                    norm_loss = sum_loss / choice_byte_length if choice_byte_length > 0 else float('inf')
-                    
-                    # Append Log-Likelihoods (Log-Likelihood = -NLL)
-                    choice_log_likelihoods_acc.append(-sum_loss)
-                    choice_log_likelihoods_acc_norm.append(-norm_loss)
-                    
-                # Predict the choice with the highest log-likelihood
-                predicted_choice_idx_acc = np.argmax(choice_log_likelihoods_acc)
-                predicted_choice_idx_acc_norm = np.argmax(choice_log_likelihoods_acc_norm)
-                predicted_answer_char_acc = chr(65 + predicted_choice_idx_acc)
-                predicted_answer_char_acc_norm = chr(65 + predicted_choice_idx_acc_norm)
-                
-                true_answer_char = chr(65 + true_label)
-
-                if predicted_choice_idx_acc == true_label:
-                    correct_predictions_acc += 1
-                if predicted_choice_idx_acc_norm == true_label:
-                    correct_predictions_acc_norm += 1
-                total_questions += 1
-                
-                if total_questions <= 5: # Print first 5 examples
-                    print(f"\nContext:\n{context}")
-                    for idx, ch in enumerate(choices):
-                        print(f"{chr(65+idx)}. {ch} (Log-likelihood: {choice_log_likelihoods_acc[idx]:.2f} (acc) {choice_log_likelihoods_acc_norm[idx]:.2f} (acc_norm))")
-                    print(f"True Answer: {true_answer_char}")
-                    print(f"Predicted Answer (acc): {predicted_answer_char_acc}")
-                    print(f"Predicted Answer (acc_norm): {predicted_answer_char_acc_norm}")
-                    print("-" * 30)
-
-    accuracy_acc = correct_predictions_acc / total_questions
-    accuracy_acc_norm = correct_predictions_acc_norm / total_questions
     print(f"\n--- HellaSwag Evaluation Results ---")
     print(f"Total questions: {total_questions}")
     print(f"Correct predictions (acc): {correct_predictions_acc}")

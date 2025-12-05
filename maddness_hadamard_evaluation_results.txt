@@ -1,0 +1,3 @@
+Depth | Perplexity | HellaSwag Acc
+---|---|---
+4 | 9069.21 | 0.2615

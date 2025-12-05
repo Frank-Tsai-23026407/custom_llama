@@ -171,6 +171,10 @@ conda create -n llama-env python=3.11
 conda activate llama-env
 
 # Install dependencies
+# Note: We recommend installing PyTorch and related libraries via Conda first to avoid build issues
+conda install pytorch transformers accelerate safetensors sentencepiece protobuf -c pytorch -c huggingface -c conda-forge
+
+# Install remaining dependencies and ensure correct transformers version
 pip install -r requirements.txt
 ```
 
