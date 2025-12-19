@@ -9,7 +9,7 @@ from transformers import AutoTokenizer
 
 # my libraries
 from llama_backend.utils import StopOnTokens
-from llama_backend.llama_my import LlamaMyModel
+from llama_backend.llama_custom import CustomLlamaModel
 
 
 def setup_model_and_tokenizer(
@@ -21,12 +21,12 @@ def setup_model_and_tokenizer(
     dtype: torch.dtype = torch.float32,
     device: Optional[torch.device] = None,
     extra_model_kwargs: Optional[Dict] = None,
-) -> Tuple[LlamaMyModel, AutoTokenizer, torch.device, torch.dtype]:
+) -> Tuple[CustomLlamaModel, AutoTokenizer, torch.device, torch.dtype]:
     """Initializes and configures a model, tokenizer, and device for evaluation.
 
     This is a convenience function that streamlines the setup process for running
     evaluation tasks. It handles device selection, tokenizer loading, and the
-    instantiation of the `LlamaMyModel` with specified quantization and backend
+    instantiation of the `CustomLlamaModel` with specified quantization and backend
     configurations.
 
     Args:
@@ -40,11 +40,11 @@ def setup_model_and_tokenizer(
         device (Optional[torch.device], optional): The device to use. If None, it is
             auto-detected. Defaults to None.
         extra_model_kwargs (Optional[Dict], optional): Additional keyword arguments to pass
-            to the `LlamaMyModel` constructor, useful for backend-specific settings.
+            to the `CustomLlamaModel` constructor, useful for backend-specific settings.
             Defaults to None.
 
     Returns:
-        Tuple[LlamaMyModel, AutoTokenizer, torch.device, torch.dtype]: A tuple containing
+        Tuple[CustomLlamaModel, AutoTokenizer, torch.device, torch.dtype]: A tuple containing
             the initialized model, tokenizer, device, and dtype.
     """
     if device is None:
@@ -64,7 +64,7 @@ def setup_model_and_tokenizer(
     if extra_model_kwargs:
         model_kwargs.update(extra_model_kwargs)
 
-    model = LlamaMyModel(**model_kwargs)
+    model = CustomLlamaModel(**model_kwargs)
     return model, tokenizer, device, dtype
 
 
@@ -166,7 +166,7 @@ def evaluate_choice_likelihood(
     by the number of tokens in the choice), which are used for different accuracy metrics.
 
     Args:
-        model (LlamaMyModel): The model instance to evaluate with.
+        model (CustomLlamaModel): The model instance to evaluate with.
         tokenizer (AutoTokenizer): The corresponding tokenizer.
         context (str): The preceding text or question.
         choice (str): The continuation or answer to be evaluated.

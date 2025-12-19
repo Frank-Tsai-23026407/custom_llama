@@ -30,7 +30,7 @@ def clone_forward_all(x, layers_params, ...):
 
 ```python
 # 物件導向，有狀態
-class transfomer_block_with_kv_cache:
+class transformer_block_with_kv_cache:
     def __init__(self, params, ...):
         self.params = params
         self.k_cache = None  # 記憶 key
@@ -63,11 +63,11 @@ class transfomer_block_with_kv_cache:
 
 ```python
 # Clone: 簡單直接
-model_clone = LlamaMyModel(backend="clone", dtype=torch.bfloat16)
+model_clone = CustomLlamaModel(backend="clone", dtype=torch.bfloat16)
 logits = model_clone.single_step(inputs)  # 一次性計算
 
 # Custom: 也可以，但 KV cache 沒用到
-model_custom = LlamaMyModel(backend="custom", dtype=torch.bfloat16)
+model_custom = CustomLlamaModel(backend="custom", dtype=torch.bfloat16)
 logits = model_custom.single_step(inputs)  # cache 保持未使用
 ```
 
@@ -77,7 +77,7 @@ logits = model_custom.single_step(inputs)  # cache 保持未使用
 
 ```python
 # Clone: 效率低，每次都重算整個序列
-model_clone = LlamaMyModel(backend="clone")
+model_clone = CustomLlamaModel(backend="clone")
 for i in range(100):
     logits = model_clone.single_step(current_tokens)  # 重算所有 token
     next_token = sample(logits)
@@ -85,7 +85,7 @@ for i in range(100):
 # ❌ 時間複雜度: O(n²) - n 是生成長度
 
 # Custom: 效率高，只計算新 token
-model_custom = LlamaMyModel(backend="custom")
+model_custom = CustomLlamaModel(backend="custom")
 for i in range(100):
     logits = model_custom.single_step(new_token_only)  # 只算新 token
     next_token = sample(logits)
@@ -98,7 +98,7 @@ for i in range(100):
 
 ```python
 # Clone: 靈活控制
-model = LlamaMyModel(
+model = CustomLlamaModel(
     backend="clone",
     clone_compute_dtype=torch.float32,  # 主計算精度
     rope_cache_dtype=torch.bfloat16,    # RoPE 精度
@@ -106,7 +106,7 @@ model = LlamaMyModel(
 )
 
 # Custom: 透過 policy 控制（較粗粒度）
-model = LlamaMyModel(
+model = CustomLlamaModel(
     backend="custom",
     precision_policy="match_hf"  # 只有預設選項
 )
@@ -122,13 +122,13 @@ hf_model = AutoModelForCausalLM.from_pretrained(...)
 hf_logits = hf_model(input_ids).logits
 
 # Clone: 高度對齊
-clone_model = LlamaMyModel(backend="clone", dtype=torch.bfloat16)
+clone_model = CustomLlamaModel(backend="clone", dtype=torch.bfloat16)
 clone_logits = clone_model.single_step(inputs)
 print(f"Clone diff: {(hf_logits - clone_logits).abs().mean()}")
 # 輸出: 0.028 ✅
 
 # Custom: 同樣高度對齊（RoPE 修正後）
-custom_model = LlamaMyModel(backend="custom", dtype=torch.bfloat16)
+custom_model = CustomLlamaModel(backend="custom", dtype=torch.bfloat16)
 custom_logits = custom_model.single_step(inputs)
 print(f"Custom diff: {(hf_logits - custom_logits).abs().mean()}")
 # 輸出: 0.039 ✅ (RoPE 修正後，從 2.249 改善 58 倍)
@@ -267,7 +267,7 @@ Custom Backend 路徑:
 tinyllama_my.py (backend='custom')
   └─> plain_script/plain_script.py
       ├─> transformer_block()
-      └─> transfomer_block_with_kv_cache
+      └─> transformer_block_with_kv_cache
           ├─> mqa_rope()
           └─> apply_rope()  # Halved RoPE ✅ (已修正)
 ```
@@ -281,13 +281,13 @@ tinyllama_my.py (backend='custom')
 ```python
 # 從 Custom 遷移到 Clone
 # 前:
-model = LlamaMyModel(
+model = CustomLlamaModel(
     backend="custom",
     precision_policy="match_hf"
 )
 
 # 後:
-model = LlamaMyModel(
+model = CustomLlamaModel(
     backend="clone",
     dtype=torch.bfloat16,
     clone_compute_dtype=torch.bfloat16,
@@ -302,10 +302,10 @@ model = LlamaMyModel(
 
 ```python
 # Clone 太慢（生成場景）
-model = LlamaMyModel(backend="clone")  # ❌ 慢 (無 KV cache)
+model = CustomLlamaModel(backend="clone")  # ❌ 慢 (無 KV cache)
 
 # 改用 Custom
-model = LlamaMyModel(
+model = CustomLlamaModel(
     backend="custom",
     precision_policy="bf16"  # 與 Clone 精度相近
 )
@@ -320,7 +320,7 @@ model.generate(prompt, max_new_tokens=1000)  # ✅ 快 (~10x)
 
 ```python
 # 開發階段：用 Clone 驗證正確性
-dev_model = LlamaMyModel(backend="clone", dtype=torch.bfloat16)
+dev_model = CustomLlamaModel(backend="clone", dtype=torch.bfloat16)
 dev_logits = dev_model.single_step(test_input)
 
 # 對照 HF
@@ -328,7 +328,7 @@ hf_logits = hf_model(test_input).logits
 assert torch.allclose(dev_logits, hf_logits, atol=0.1), "實作有問題！"
 
 # 生產階段：用 Custom 部署
-prod_model = LlamaMyModel(backend="custom", dtype=torch.bfloat16)
+prod_model = CustomLlamaModel(backend="custom", dtype=torch.bfloat16)
 output = prod_model.generate(user_input, max_new_tokens=512)
 
 # 一次性驗證：確保兩者一致

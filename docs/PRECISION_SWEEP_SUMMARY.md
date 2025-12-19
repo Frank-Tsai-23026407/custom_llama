@@ -188,7 +188,7 @@ awq/log/
 
 ## 相關文件
 
-- `USAGE.md` - LlamaMyModel 完整使用指南
+- `USAGE.md` - CustomLlamaModel 完整使用指南
 - `docs/backend_comparison.md` - Backend 比較文件
 - `scripts/sweep_precision_configs.py` - Logits 層級的精度掃描
 - `scripts/compare_all_backends.py` - Backend 比較工具

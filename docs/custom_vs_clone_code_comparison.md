@@ -61,7 +61,7 @@ for layer_idx in range(self.num_layers):
     }
     # 創建帶 KV cache 的 block
     self.attention_blocks.append(
-        transfomer_block_with_kv_cache(params, num_heads, num_kv_heads, device=device)
+        transformer_block_with_kv_cache(params, num_heads, num_kv_heads, device=device)
     )
 
 # 2. Forward 時使用已初始化的 blocks
@@ -78,7 +78,7 @@ for layer_idx in range(self.num_layers):
 
 **特點**：
 - ✅ 有狀態（Stateful）
-- ✅ KV cache 儲存在 `transfomer_block_with_kv_cache` 實例中
+- ✅ KV cache 儲存在 `transformer_block_with_kv_cache` 實例中
 - ✅ 支援增量生成（只計算新 token）
 - ✅ 適合實際推理和生成任務
 
@@ -110,8 +110,8 @@ def clone_attention_ffn(x, params, num_heads, num_kv_heads, ...):
 ### Custom Backend: **有 KV Cache**
 
 ```python
-# plain_script/plain_script.py - transfomer_block_with_kv_cache
-class transfomer_block_with_kv_cache:
+# plain_script/plain_script.py - transformer_block_with_kv_cache
+class transformer_block_with_kv_cache:
     def __init__(self, params, ...):
         self.k_cache = torch.empty(0, device=self.device)
         self.v_cache = torch.empty(0, device=self.device)
@@ -217,7 +217,7 @@ def apply_rope(x, seq_len, head_dim, start_pos=0, policy=None):
 
 ```python
 # tinyllama_my.py - Clone 初始化
-model = LlamaMyModel(
+model = CustomLlamaModel(
     backend="clone",
     clone_compute_dtype=torch.bfloat16,  # 主計算 dtype
     rope_cache_dtype=torch.bfloat16,     # RoPE cache dtype
@@ -249,7 +249,7 @@ def clone_attention_ffn(x, params, ..., compute_dtype=None, softmax_fp32=False):
 # tinyllama_my.py - Custom 初始化
 from precision_policy import PrecisionPolicy
 
-model = LlamaMyModel(
+model = CustomLlamaModel(
     backend="custom",
     precision_policy="bf16"  # 或 "default"、"match_hf"
 )
@@ -347,7 +347,7 @@ Logits
 | **主入口** | `tinyllama_my.py` (backend='clone') | `tinyllama_my.py` (backend='custom') |
 | **Forward 實作** | `hf_clone.py` | `plain_script/plain_script.py` |
 | **RoPE** | `hf_clone.py::build_rope_cache`<br>`hf_clone.py::apply_rotary_pos_emb` | `plain_script.py::apply_rope` |
-| **Attention** | `hf_clone.py::clone_attention_ffn` | `plain_script.py::mqa_rope`<br>`plain_script.py::transfomer_block_with_kv_cache` |
+| **Attention** | `hf_clone.py::clone_attention_ffn` | `plain_script.py::mqa_rope`<br>`plain_script.py::transformer_block_with_kv_cache` |
 | **FFN** | 內嵌在 `clone_attention_ffn` 中 | `plain_script.py::ffn_SwiGLU` |
 | **精度控制** | 函數參數 (`compute_dtype`, `softmax_fp32`) | `precision_policy.py::PrecisionPolicy` |
 
@@ -360,7 +360,7 @@ Logits
 ✅ **精度實驗和調優**
 ```python
 # 測試不同精度組合對準確度的影響
-model = LlamaMyModel(
+model = CustomLlamaModel(
     backend="clone",
     clone_compute_dtype=torch.bfloat16,
     rope_cache_dtype=torch.float32,
@@ -371,7 +371,7 @@ model = LlamaMyModel(
 ✅ **驗證與 HuggingFace 的一致性**
 ```python
 # 逐層比較輸出
-clone_model = LlamaMyModel(backend="clone", ...)
+clone_model = CustomLlamaModel(backend="clone", ...)
 hf_model = AutoModelForCausalLM.from_pretrained(...)
 
 # 可以輕鬆提取中間層輸出
@@ -390,7 +390,7 @@ for batch in dataloader:
 ✅ **文本生成（多個 token）**
 ```python
 # 生成 100 個 token，Custom 快 ~10x
-model = LlamaMyModel(backend="custom", precision_policy="bf16")
+model = CustomLlamaModel(backend="custom", precision_policy="bf16")
 output = model.generate(prompt, max_new_tokens=100)
 ```
 
@@ -405,7 +405,7 @@ for user_input in conversation:
 ✅ **生產部署（速度優先）**
 ```python
 # 在線服務，需要快速響應
-model = LlamaMyModel(
+model = CustomLlamaModel(
     backend="custom",
     precision_policy="bf16",  # 平衡精度和速度
     dtype=torch.bfloat16

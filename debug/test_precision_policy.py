@@ -9,7 +9,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 # customed code
-from llama_backend.llama_my import LlamaMyModel
+from llama_backend.llama_custom import CustomLlamaModel
 
 def test_precision_policies():
     model_path = "TinyLlama/TinyLlama_v1.1"
@@ -44,10 +44,10 @@ def test_precision_policies():
     print(f"\nHF logits shape: {hf_logits.shape}, dtype: {hf_logits.dtype}")
     print(f"HF logits [0, -1, :5]: {hf_logits[0, -1, :5].cpu().to(torch.float32).numpy()}")
     
-    # Test 0: Exact HF backend path inside LlamaMyModel
+    # Test 0: Exact HF backend path inside CustomLlamaModel
     print("\n" + "="*60)
-    print("Test 0: LlamaMyModel with backend='huggingface' (exact parity path)")
-    my_model_hf_backend = LlamaMyModel(
+    print("Test 0: CustomLlamaModel with backend='huggingface' (exact parity path)")
+    my_model_hf_backend = CustomLlamaModel(
         model_name=model_path,
         device=device,
         dtype=torch.bfloat16,
@@ -62,8 +62,8 @@ def test_precision_policies():
 
     # Test 0b: Clone backend path (HF-compatible clone implementation)
     print("\n" + "="*60)
-    print("Test 0b: LlamaMyModel with backend='clone' (HF-clone path)")
-    my_model_clone = LlamaMyModel(
+    print("Test 0b: CustomLlamaModel with backend='clone' (HF-clone path)")
+    my_model_clone = CustomLlamaModel(
         model_name=model_path,
         device=device,
         dtype=torch.bfloat16,
@@ -77,8 +77,8 @@ def test_precision_policies():
 
     # Test 1: Default policy (bfloat16 weights, default compute)
     print("\n" + "="*60)
-    print("Test 1: LlamaMyModel with default precision policy")
-    my_model_default = LlamaMyModel(
+    print("Test 1: CustomLlamaModel with default precision policy")
+    my_model_default = CustomLlamaModel(
         model_name=model_path,
         device=device,
         dtype=torch.bfloat16,
@@ -98,8 +98,8 @@ def test_precision_policies():
     
     # Test 2: match_hf policy (bfloat16 weights, float32 compute)
     print("\n" + "="*60)
-    print("Test 2: LlamaMyModel with match_hf precision policy")
-    my_model_hf = LlamaMyModel(
+    print("Test 2: CustomLlamaModel with match_hf precision policy")
+    my_model_hf = CustomLlamaModel(
         model_name=model_path,
         device=device,
         dtype=torch.bfloat16,
@@ -119,8 +119,8 @@ def test_precision_policies():
     
     # Test 3: bf16 end-to-end policy
     print("\n" + "="*60)
-    print("Test 3: LlamaMyModel with bf16 end-to-end policy")
-    my_model_bf16 = LlamaMyModel(
+    print("Test 3: CustomLlamaModel with bf16 end-to-end policy")
+    my_model_bf16 = CustomLlamaModel(
         model_name=model_path,
         device=device,
         dtype=torch.bfloat16,

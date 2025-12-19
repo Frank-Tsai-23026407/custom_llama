@@ -14,7 +14,7 @@ echo ""
 echo "======================================================================"
 
 # Navigate to script directory
-cd "$(dirname "$0")"
+cd "$(dirname "$0")/.."
 
 # Default: run all methods
 # You can specify --method bfp, --method awq-fix, --method awq-mix, or --method all

@@ -15,9 +15,9 @@ import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 # my libraries
-from llama_backend.custom.plain_script import *
+from llama_backend.custom.llama_backend import *
 from llama_backend.utils import *
-from llama_backend.llama_my import LlamaMyModel
+from llama_backend.llama_custom import CustomLlamaModel
 import task_utils as TU
 
 
@@ -27,7 +27,7 @@ def main():
     parser.add_argument("--m_bit", type=int, default=4, help="Mantissa bits for BFP quantization.")
     parser.add_argument("--b_size", type=int, default=16, help="Block size for BFP quantization.")
     parser.add_argument("--model_path", type=str, default="TinyLlama/TinyLlama_v1.1", help="Path or hub ID for the model to evaluate (e.g., model/llama-3.2-1b/Llama-3.2-1B)")
-    parser.add_argument("--backend", type=str, default="custom", choices=["custom","huggingface","clone"], help="Execution backend for LlamaMyModel.")
+    parser.add_argument("--backend", type=str, default="custom", choices=["custom","huggingface","clone"], help="Execution backend for CustomLlamaModel.")
     
     args = parser.parse_args()
 

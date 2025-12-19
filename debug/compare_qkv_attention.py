@@ -9,7 +9,7 @@ import sys
 # Ensure repository root is on sys.path for absolute imports
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from llama_backend.llama_my import LlamaMyModel
+from llama_backend.llama_custom import CustomLlamaModel
 
 # optional import for embedding helper
 try:
@@ -90,8 +90,8 @@ def try_get_my_attentions(my, inputs):
     return None
 
 
-def get_my_first_layer_attention_direct(my: LlamaMyModel, input_ids: torch.Tensor):
-    """Compute first-layer attention scores from LlamaMyModel directly, without modifying its APIs.
+def get_my_first_layer_attention_direct(my: CustomLlamaModel, input_ids: torch.Tensor):
+    """Compute first-layer attention scores from CustomLlamaModel directly, without modifying its APIs.
     Returns a tensor shaped (batch, heads, seq, seq).
     """
     # Build input embeddings similarly to single_step
@@ -170,7 +170,7 @@ def extract_hf_qkv(hflm, input_ids: torch.Tensor):
     }
 
 
-def extract_my_qkv(my: LlamaMyModel, input_ids: torch.Tensor):
+def extract_my_qkv(my: CustomLlamaModel, input_ids: torch.Tensor):
     """Extract raw Q,K,V (after layernorm, before RoPE) and after RoPE for first custom block."""
     if not hasattr(my, 'attention_blocks') or len(my.attention_blocks) == 0:
         return None
@@ -209,7 +209,7 @@ def compare_first_layer(model_path, device_str="cuda", texts=None):
     tokenizer = hflm.tokenizer if hasattr(hflm, "tokenizer") else AutoTokenizer.from_pretrained(model_path)
 
     print("Loading my model...")
-    my = LlamaMyModel(model_name=model_path, device=device, dtype=torch.bfloat16)
+    my = CustomLlamaModel(model_name=model_path, device=device, dtype=torch.bfloat16)
 
     if texts is None:
         texts = [
@@ -245,7 +245,7 @@ def compare_first_layer(model_path, device_str="cuda", texts=None):
                 # Wrap to look like a tuple of layers
                 my_attns = (first_attn,)
         if my_attns is None:
-            print("Could not obtain my_model attentions automatically. If your LlamaMyModel can return attentions, implement `single_step(..., return_attentions=True)` or `single_step(..., return_latents=True)` that returns per-layer attention tensors shaped (batch, heads, seq, seq).")
+            print("Could not obtain my_model attentions automatically. If your CustomLlamaModel can return attentions, implement `single_step(..., return_attentions=True)` or `single_step(..., return_latents=True)` that returns per-layer attention tensors shaped (batch, heads, seq, seq).")
         else:
             print(f"my_model returned {len(my_attns)} attention layers; first layer shape: {tuple(my_attns[0].shape)}")
 

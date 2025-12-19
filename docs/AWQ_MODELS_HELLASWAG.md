@@ -152,7 +152,7 @@ AWQ 模型使用 HuggingFace backend 直接載入：
 
 ```python
 # task_script_hellaswag.py 中的實作
-my_model = LlamaMyModel(
+my_model = CustomLlamaModel(
     model_name=model_path,  # 指向 AWQ 量化模型路徑
     device=device,
     dtype=torch.bfloat16,
@@ -263,7 +263,7 @@ test_awq_mix-precision_m2.log
 - [`NEW_FILES_SUMMARY.md`](NEW_FILES_SUMMARY.md) - 完整檔案清單
 - [`README_PRECISION_SWEEP.md`](README_PRECISION_SWEEP.md) - 精度掃描使用指南
 - [`PRECISION_SWEEP_SUMMARY.md`](PRECISION_SWEEP_SUMMARY.md) - 實作技術細節
-- [`../USAGE.md`](../USAGE.md) - LlamaMyModel 完整使用指南
+- [`../USAGE.md`](../USAGE.md) - CustomLlamaModel 完整使用指南
 - [`../docs/backend_comparison.md`](../docs/backend_comparison.md) - Backend 比較
 
 ## 🎉 總結

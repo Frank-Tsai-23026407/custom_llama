@@ -22,7 +22,7 @@
 | 檔案 | 用途 | 狀態 | 建議 |
 |------|------|------|------|
 | `check_dtype.py` | 檢查 HF 模型的參數和輸出 dtype | 🗑️ 舊版 | **可刪除**（功能已被 `verify_dtype.py` 取代） |
-| `verify_dtype.py` | 驗證 `LlamaMyModel` 各層的 dtype | 🗑️ 舊版 | **可刪除**（已完成驗證，不再需要） |
+| `verify_dtype.py` | 驗證 `CustomLlamaModel` 各層的 dtype | 🗑️ 舊版 | **可刪除**（已完成驗證，不再需要） |
 | `check_lm_eval_dtype.py` | 檢查 lm-eval 使用的 dtype | 🗑️ 舊版 | **可刪除**（已確認 lm-eval 使用 auto dtype） |
 | `check_precision.py` | 比較 lm-eval 和自定義模型的精度 | 🗑️ 舊版 | **可刪除**（已被更完整的工具取代） |
 
@@ -34,7 +34,7 @@
 
 | 檔案 | 用途 | 狀態 | 建議 |
 |------|------|------|------|
-| `compare_models.py` | 比較 HFLM 和 LlamaMyModel 的逐層輸出 | 🗑️ 部分過時 | **可刪除**（已被 `scripts/compare_all_backends.py` 取代） |
+| `compare_models.py` | 比較 HFLM 和 CustomLlamaModel 的逐層輸出 | 🗑️ 部分過時 | **可刪除**（已被 `scripts/compare_all_backends.py` 取代） |
 | `compare_qkv_attention.py` | 詳細比較 Q/K/V 和 attention 計算 | 🔍 專門工具 | **保留**（用於深度 debug attention 問題） |
 
 **說明**:
