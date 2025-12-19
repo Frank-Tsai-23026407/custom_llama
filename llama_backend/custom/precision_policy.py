@@ -98,6 +98,7 @@ class PrecisionPolicy:
             name="bf16"
         )
     
+    # print policy
     def __repr__(self):
         return (f"PrecisionPolicy(name='{self.name}', "
                 f"attn_matmul={self.attn_matmul_dtype}, "

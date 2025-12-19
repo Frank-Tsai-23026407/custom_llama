@@ -15,9 +15,9 @@ import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 # my libraries
-from llama_backend.custom.plain_script import *
+from llama_backend.custom.llama_backend import *
 from llama_backend.utils import *
-from llama_backend.llama_my import LlamaMyModel
+from llama_backend.llama_custom import CustomLlamaModel
 import task_utils as TU
 
 
@@ -49,7 +49,7 @@ def main():
     parser.add_argument("--b_size", type=int, default=16, help="Block size for BFP quantization.")
     parser.add_argument("--awq", action="store_true", help="Use a pre-quantized AWQ model.")
     parser.add_argument("--model_path", type=str, default=None, help="Path to the quantized model for evaluation mode.")
-    parser.add_argument("--backend", type=str, default="huggingface", choices=["custom","huggingface","clone"], help="Execution backend for LlamaMyModel.")
+    parser.add_argument("--backend", type=str, default="huggingface", choices=["custom","huggingface","clone"], help="Execution backend for CustomLlamaModel.")
     
     # Precision control arguments for clone backend
     parser.add_argument("--compute_dtype", type=str, default=None, choices=["fp32", "bf16", "fp16"], 
@@ -149,7 +149,7 @@ def main():
     total_questions = 0
     
     # use my model for evaluation
-    # Build kwargs for LlamaMyModel based on backend
+    # Build kwargs for CustomLlamaModel based on backend
     model_kwargs = {
         "model_name": model_path,
         "device": device,
@@ -173,7 +173,7 @@ def main():
     if args.backend == "custom" and args.precision_policy is not None:
         model_kwargs["precision_policy"] = args.precision_policy
     
-    my_model = LlamaMyModel(**model_kwargs)
+    my_model = CustomLlamaModel(**model_kwargs)
 
 
     for batch in tqdm(data_loader, desc="Evaluating HellaSwag"):

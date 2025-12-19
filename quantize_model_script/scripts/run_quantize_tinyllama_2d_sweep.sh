@@ -14,7 +14,7 @@ echo ""
 echo "======================================================================"
 
 # Navigate to script directory
-cd "$(dirname "$0")"
+cd "$(dirname "$0")/.."
 
 # Run the quantization sweep
 python quantize_tinyllama_2d_sweep.py \

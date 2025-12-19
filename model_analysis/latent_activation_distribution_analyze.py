@@ -6,7 +6,7 @@ import numpy as np
 
 # Correct the path to allow importing from the project root
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
-from llama_backend.custom.plain_script import *
+from llama_backend.custom.llama_backend import *
 
 # example_input = '\n<|user|>:hello</s>\n<|assistant|>:'
 example_input = '\n<|user|>:How is the weather today?</s>\n<|assistant|>:It is hot today.</s>\n<|user|>:What about tomorrow?</s>\n<|assistant|>:'
