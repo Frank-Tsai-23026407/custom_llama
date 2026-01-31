@@ -7,7 +7,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 import math
 import torch
 from typing import Tuple, Optional
-from ..custom.plain_script import rmsnorm, input_embedding, lm_head
+from ..custom.llama_backend import rmsnorm, input_embedding, lm_head
 
 
 def build_rope_cache(seq_len: int, head_dim: int, base: float = 10000.0, device=None, dtype=torch.float32):

@@ -7,17 +7,13 @@ import json
 from transformers import AutoModelForCausalLM, AutoTokenizer
 from datasets import load_dataset
 from tqdm import tqdm
-import numpy as np
-import re
-from awq_utils import pseudo_quantize, search_awq_scale, apply_awq_scale
-
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
+
+from custom_model_only_quantize.utils.activation_utils import prepare_calibration_data, get_layer_activations, get_multiple_layers_activations
+from awq_utils import awq_fix_precision_quantize_2d
 
 from testbench import task_utils as TU
 from custom_model_only_quantize.block_floating_point.block_quantization_2d import block_floating_point_quantize_2d
-
-
-
 
 def resolve_model_path(model: str) -> str:
     """Resolves a model alias to a full path or returns a given path.
@@ -44,133 +40,6 @@ def resolve_model_path(model: str) -> str:
     # If user passed a path, return as-is
     return model
 
-def quantize_model(model_path, dataset_name, dataset_config, num_samples, block_height, block_width, mantissa_bits, device="auto", dry_run=False):
-    """Applies fixed-precision AWQ to a language model.
-
-    This function orchestrates the end-to-end quantization process. It performs the
-    following steps:
-    1.  Loads the pretrained model and tokenizer from the specified path.
-    2.  Loads and preprocesses a calibration dataset.
-    3.  Registers forward hooks on all linear layers to capture input activations.
-    4.  Runs a forward pass with the calibration data to collect these activations.
-    5.  Applies the AWQ algorithm to each linear layer using the captured activations.
-    6.  Saves the newly quantized model and its tokenizer to a new directory.
-
-    Args:
-        model_path (str): The path to the pretrained model to be quantized.
-        dataset_name (str): The name of the Hugging Face dataset for calibration (e.g., "wikitext").
-        dataset_config (str): The specific configuration of the dataset to use.
-        num_samples (int): The number of samples to use from the calibration dataset.
-        block_height (int): The block height for Block Floating-Point (BFP) quantization.
-        block_width (int): The block width for Block Floating-Point (BFP) quantization.
-        mantissa_bits (int): The number of mantissa bits for BFP quantization.
-        device (str, optional): The device to perform quantization on ('auto', 'cpu', 'cuda').
-            Defaults to "auto".
-        dry_run (bool, optional): Whether to skip saving the quantized model. Defaults to False.
-    """
-    # Resolve device
-    if device == "auto":
-        device = "cuda" if torch.cuda.is_available() else "cpu"
-
-    print("Loading model and tokenizer...")
-    model = AutoModelForCausalLM.from_pretrained(model_path)
-    tokenizer = AutoTokenizer.from_pretrained(model_path)
-
-    print(f"Loading and preparing dataset: {dataset_name}...")
-    dataset = load_dataset(dataset_name, dataset_config, split="train").select(range(num_samples))
-    text = "\n\n".join(dataset["text"])
-    tokens = tokenizer(text, return_tensors="pt").input_ids.to(device)
-
-    # Dictionary to store activations
-    activations = {}
-    # Hook function to capture activations
-    def get_activation(name):
-        def hook(model, input, output):
-            activations[name] = input[0].detach()
-        return hook
-
-    # Register hooks for all linear layers
-    hooks = []
-    for name, module in model.named_modules():
-        if "lm_head" in name:
-          continue
-        if isinstance(module, torch.nn.Linear):
-            hooks.append(module.register_forward_hook(get_activation(name)))
-
-    print("Performing forward pass to get activations...")
-    model.to(device)
-    with torch.no_grad():
-        model(tokens)
-
-    # Remove hooks
-    for hook in hooks:
-        hook.remove()
-
-    # Identify target layers
-    target_layers = []
-    for name, module in model.named_modules():
-        if "lm_head" in name or "embed_tokens" in name:
-            continue
-        if isinstance(module, torch.nn.Linear):
-            if name in activations:
-                target_layers.append(name)
-    
-    print(f"Target layers for quantization ({len(target_layers)}):")
-    for name in target_layers:
-        print(f"  - {name}")
-
-    print("Applying AWQ quantization...")
-    awq_scales = {}
-    for name, module in model.named_modules():
-        if name in target_layers:
-            print(f"Quantizing layer: {name}")
-            X = activations[name]
-            # 將活化值展平為 [N, in_features]以符合矩陣乘法
-            X = X.view(-1, X.shape[-1])
-            W = module.weight.data
-            
-            # 搜尋最優縮放向量 s
-            s = search_awq_scale(W, X, block_height=block_height, block_width=block_width)
-            awq_scales[name] = s.clone().cpu()
-            
-            # 套用縮放並量化 (bits 使用傳入的 mantissa_bits)
-            W_scaled = apply_awq_scale(W, s)
-            q_W_scaled = pseudo_quantize(W_scaled, n_bits=mantissa_bits, block_height=block_height, block_width=block_width)
-            
-            # 還原縮放以維持 output 維度正確 (Pseudo-quantization 模式)
-            # W_final = Q(W*s) / s
-            W_final = q_W_scaled / s.view(1, -1)
-            module.weight.data = W_final
-        elif isinstance(module, torch.nn.Linear) and ("lm_head" not in name and "embed_tokens" not in name):
-            print(f"Skipping layer {name} as no activation was captured.")
-
-
-    if not dry_run:
-        print("Saving quantized model...")
-        output_dir = f"{model_path}-awq-quantized-fix-precision-bh{block_height}-bw{block_width}-m{mantissa_bits}"
-        os.makedirs(output_dir, exist_ok=True)
-        
-        # Save metadata and scales
-        metadata = {
-            "quantized_layers": target_layers,
-            "config": {
-                "block_height": block_height,
-                "block_width": block_width,
-                "mantissa_bits": mantissa_bits,
-            }
-        }
-        with open(os.path.join(output_dir, "awq_config.json"), "w") as f:
-            json.dump(metadata, f, indent=4)
-        torch.save(awq_scales, os.path.join(output_dir, "awq_scales.pt"))
-        print(f"Saved AWQ metadata and scales to: {output_dir}")
-
-        # Convert to bf16 to save disk space
-        model = model.to(torch.bfloat16)
-        model.save_pretrained(output_dir, torch_dtype=torch.bfloat16)
-        tokenizer.save_pretrained(output_dir)
-        print(f"Quantized model saved to: {output_dir} (bf16 format)")
-    else:
-        print("Dry run complete; not saving model.")
 
 def main():
     """Main entry point for the AWQ fixed-precision quantization script.
@@ -212,37 +81,17 @@ def main():
     model_path = resolve_model_path(args.model)
     print(f"Resolved model path: {model_path}")
 
-    print("Loading model and tokenizer for activation capture...")
-    base_model = AutoModelForCausalLM.from_pretrained(model_path)
+    print("Loading model and tokenizer for quantization...")
+    base_model = AutoModelForCausalLM.from_pretrained(model_path, torch_dtype=torch.bfloat16)
     tokenizer = AutoTokenizer.from_pretrained(model_path)
 
     device = args.device if args.device != "auto" else ("cuda" if torch.cuda.is_available() else "cpu")
     base_model.to(device)
 
-    # Prepare dataset and tokens once
-    dataset = load_dataset(args.dataset, args.dataset_config, split="train").select(range(args.num_samples))
-    text = "\n\n".join(dataset["text"])
-    tokens = tokenizer(text, return_tensors="pt").input_ids.to(device)
-
-    activations = {}
-
-    def get_activation(name):
-        def hook(model, input, output):
-            activations[name] = input[0].detach()
-        return hook
-
-    hooks = []
-    for name, module in base_model.named_modules():
-        if "lm_head" in name:
-            continue
-        if isinstance(module, torch.nn.Linear):
-            hooks.append(module.register_forward_hook(get_activation(name)))
-
-    with torch.no_grad():
-        base_model(tokens)
-
-    for h in hooks:
-        h.remove()
+    # 1. Prepare packed calibration data (CPU tensors)
+    # Using default seq_len=512 from default argument if needed, or hardcode based on safe practice
+    print("Preparing packed calibration data...")
+    packed_samples = prepare_calibration_data(tokenizer, args.dataset, num_samples=args.num_samples, seq_len=512)
 
     for m in args.mantissa_bits:
         print("----------------------------------------------------------------")
@@ -251,42 +100,83 @@ def main():
 
         # Work on a copy to avoid accumulating quantization across runs
         model_copy = copy.deepcopy(base_model)
-        # Identify target layers
-        target_layers = []
-        for name, module in model_copy.named_modules():
-            if "lm_head" in name or "embed_tokens" in name:
-                continue
-            if isinstance(module, torch.nn.Linear):
-                if name in activations:
-                    target_layers.append(name)
+        model_copy.eval()
         
-        print(f"Target layers for quantization ({len(target_layers)}):")
-        # for name in target_layers:
-        #     print(f"  - {name}")
+        awq_scales = {}
+        target_layers = [] # For metadata
+
+        # Helper to group layers by block (defined once per quantization run or could be global)
+        def get_layer_groups(model):
+            groups = {}
+            others = []
+            import re
+            pattern = re.compile(r'\.(layers|h|blocks)\.(\d+)\.')
+            
+            for name, module in model.named_modules():
+                if "lm_head" in name or "embed_tokens" in name:
+                    continue
+                if isinstance(module, torch.nn.Linear):
+                    match = pattern.search(name)
+                    if match:
+                        # group_key is e.g. "model.layers.0"
+                        group_key = name[:match.end()-1]
+                        if group_key not in groups:
+                            groups[group_key] = []
+                        groups[group_key].append(name)
+                    else:
+                        others.append(name)
+            return groups, others
+
+        layer_groups, other_layers = get_layer_groups(model_copy)
+        
+        # Sort groups by index
+        sorted_group_keys = sorted(layer_groups.keys(), key=lambda k: int(k.split('.')[-1]))
+        
+        # Combined list of tasks
+        all_tasks = [layer_groups[k] for k in sorted_group_keys] + [[name] for name in other_layers]
+        
+        print(f"grouped layers into {len(all_tasks)} tasks (blocks + others) to optimize forward passes.")
 
         awq_scales = {}
-        for name, module in model_copy.named_modules():
-            if name in target_layers:
-                print(f"Quantizing layer: {name}")
-                X = activations[name]
-                # 將活化值展平為 [N, in_features] 以符合權重矩陣乘法
+        target_layers = []
+
+        # Iterate through groups (Blocks)
+        for group in tqdm(all_tasks, desc="Quantizing Blocks"):
+            # 1. Get activations for ALL layers in this group at once
+            # using base_model for clean activations
+            group_activations = get_multiple_layers_activations(base_model, packed_samples, group, device=device)
+            
+            for name in group:
+                if name not in group_activations or group_activations[name] is None:
+                    print(f"Warning: No activations for {name}")
+                    continue
+                    
+                target_layers.append(name)
+                
+                X = group_activations[name]
                 X = X.view(-1, X.shape[-1])
+                X = X.to(device)
+                
+                module = model_copy.get_submodule(name)
                 W = module.weight.data
                 
-                # 搜尋最優縮放向量 s
-                s = search_awq_scale(W, X, block_height=args.block_height, block_width=args.block_width)
-                awq_scales[name] = s.clone().cpu()
+                # 3. Quantize using the utility function (DRY)
+                W_final = awq_fix_precision_quantize_2d(
+                    W, X, 
+                    block_height=args.block_height, 
+                    block_width=args.block_width, 
+                    mantissa_bits=m
+                )
                 
-                # 套用縮放並量化
-                W_scaled = apply_awq_scale(W, s)
-                q_W_scaled = pseudo_quantize(W_scaled, n_bits=m, block_height=args.block_height, block_width=args.block_width)
+                module.weight.data = W_final.to(W.dtype)
                 
-                # 還原縮放以維持推論輸出不變 (Pseudo-quantization 模式)
-                # W_final = Q(W*s) / s
-                W_final = q_W_scaled / s.view(1, -1)
-                module.weight.data = W_final
-            elif isinstance(module, torch.nn.Linear) and ("lm_head" not in name and "embed_tokens" not in name):
-                print(f"Skipping layer {name} as no activation was captured.")
+                # Free individual activation and intermediate tensors
+                del X, W_final
+            
+            # Free dict
+            del group_activations
+            torch.cuda.empty_cache()
+
 
         if args.eval_ppl:
             TU.evaluate_ppl(model_copy, tokenizer, device, limit_tokens=args.limit_tokens_ppl)
@@ -298,7 +188,7 @@ def main():
             output_dir = f"{model_path}-awq-quantized-fix-precision-bh{args.block_height}-bw{args.block_width}-m{m}"
             os.makedirs(output_dir, exist_ok=True)
             
-            # Save metadata and scales
+            # Save metadata
             metadata = {
                 "quantized_layers": target_layers,
                 "config": {
@@ -309,8 +199,8 @@ def main():
             }
             with open(os.path.join(output_dir, "awq_config.json"), "w") as f:
                 json.dump(metadata, f, indent=4)
-            torch.save(awq_scales, os.path.join(output_dir, "awq_scales.pt"))
-            print(f"Saved AWQ metadata and scales to: {output_dir}")
+            # awq_scales is not returned by the utility function, so we skip saving it.
+            print(f"Saved AWQ metadata to: {output_dir}")
 
             # Convert to bf16 to save disk space
             model_copy = model_copy.to(torch.bfloat16)

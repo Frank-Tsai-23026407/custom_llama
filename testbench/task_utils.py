@@ -2,15 +2,21 @@
 from __future__ import annotations
 
 import os
-from typing import Dict, Tuple, Optional
-
+import re
 import torch
+import numpy as np
+from typing import Dict, Tuple, Optional, List, Callable
+from tqdm import tqdm
+from datasets import load_dataset
 from transformers import AutoTokenizer
 
 # my libraries
 from llama_backend.utils import StopOnTokens
 from llama_backend.llama_custom import CustomLlamaModel
 
+# ==============================================================================
+# 1. Setup & Preprocessing Helpers
+# ==============================================================================
 
 def setup_model_and_tokenizer(
     model_path: str,
@@ -22,31 +28,6 @@ def setup_model_and_tokenizer(
     device: Optional[torch.device] = None,
     extra_model_kwargs: Optional[Dict] = None,
 ) -> Tuple[CustomLlamaModel, AutoTokenizer, torch.device, torch.dtype]:
-    """Initializes and configures a model, tokenizer, and device for evaluation.
-
-    This is a convenience function that streamlines the setup process for running
-    evaluation tasks. It handles device selection, tokenizer loading, and the
-    instantiation of the `CustomLlamaModel` with specified quantization and backend
-    configurations.
-
-    Args:
-        model_path (str): The path to the pretrained model.
-        backend (str, optional): The execution backend ('custom', 'clone', 'huggingface').
-            Defaults to "custom".
-        apply_bfp (bool, optional): Whether to apply BFP quantization. Defaults to False.
-        bfp_block_size (int, optional): The block size for BFP. Defaults to 16.
-        bfp_mantissa_bits (int, optional): The number of mantissa bits for BFP. Defaults to 4.
-        dtype (torch.dtype, optional): The primary data type for the model. Defaults to torch.float32.
-        device (Optional[torch.device], optional): The device to use. If None, it is
-            auto-detected. Defaults to None.
-        extra_model_kwargs (Optional[Dict], optional): Additional keyword arguments to pass
-            to the `CustomLlamaModel` constructor, useful for backend-specific settings.
-            Defaults to None.
-
-    Returns:
-        Tuple[CustomLlamaModel, AutoTokenizer, torch.device, torch.dtype]: A tuple containing
-            the initialized model, tokenizer, device, and dtype.
-    """
     if device is None:
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     tokenizer = AutoTokenizer.from_pretrained(model_path)
@@ -68,85 +49,31 @@ def setup_model_and_tokenizer(
     return model, tokenizer, device, dtype
 
 
+# ==============================================================================
+# 2. Tokenization & Logit Helpers
+# ==============================================================================
+
 def tokenize_to_device(tokenizer: AutoTokenizer, text: str, device: torch.device,
                        add_special_tokens: bool = False, truncation: bool = True) -> Dict[str, torch.Tensor]:
-    """Tokenizes text and moves the resulting tensors to a specified device.
-
-    Args:
-        tokenizer (AutoTokenizer): The tokenizer to use.
-        text (str): The text to tokenize.
-        device (torch.device): The device to move the tensors to.
-        add_special_tokens (bool, optional): Whether to add special tokens. Defaults to False.
-        truncation (bool, optional): Whether to truncate the input. Defaults to True.
-
-    Returns:
-        Dict[str, torch.Tensor]: A dictionary of tensors (e.g., 'input_ids', 'attention_mask').
-    """
     enc = tokenizer(text, return_tensors="pt", truncation=truncation, add_special_tokens=add_special_tokens)
     return {k: v.to(device) for k, v in enc.items()}
 
-def token_count(tokenizer: AutoTokenizer, text: str, truncation: bool = True) -> int:
-    """Counts the number of tokens in a string without adding special tokens.
-
-    Args:
-        tokenizer (AutoTokenizer): The tokenizer to use.
-        text (str): The text to count the tokens of.
-        truncation (bool, optional): Whether to truncate the input. Defaults to True.
-
-    Returns:
-        int: The number of tokens.
-    """
-    return tokenizer(text, return_tensors="pt", truncation=truncation, add_special_tokens=False).input_ids.shape[1]
-
+def count_tokens(tokenizer: AutoTokenizer, text: str, add_special_tokens: bool = False) -> int:
+    return len(tokenizer.encode(text, add_special_tokens=add_special_tokens))
 
 def get_shifted(outputs: torch.Tensor, input_ids: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
-    """Aligns logits and labels for calculating next-token prediction loss.
-
-    This function shifts the logits and labels by one position to create a causal
-    language modeling objective. `logits[i]` will correspond to the prediction
-    for `labels[i]`.
-
-    Args:
-        outputs (torch.Tensor): The raw logits from the model of shape (batch, seq_len, vocab_size).
-        input_ids (torch.Tensor): The input token IDs of shape (batch, seq_len).
-
-    Returns:
-        Tuple[torch.Tensor, torch.Tensor]: A tuple of (shifted_logits, shifted_labels).
-    """
     shift_logits = outputs[..., :-1, :].contiguous()
     shift_labels = input_ids[..., 1:].contiguous()
     return shift_logits, shift_labels
 
-
 def per_token_cross_entropy(shift_logits: torch.Tensor, shift_labels: torch.Tensor) -> torch.Tensor:
-    """Calculates the cross-entropy loss for each token without reduction.
-
-    Args:
-        shift_logits (torch.Tensor): The model's predicted logits, already shifted.
-        shift_labels (torch.Tensor): The ground truth labels, already shifted.
-
-    Returns:
-        torch.Tensor: A 1D tensor where each element is the cross-entropy loss
-            for the corresponding token.
-    """
     loss_fct = torch.nn.CrossEntropyLoss(reduction='none')
     return loss_fct(shift_logits.view(-1, shift_logits.size(-1)), shift_labels.view(-1))
 
 
-def count_tokens(tokenizer: AutoTokenizer, text: str, add_special_tokens: bool = False) -> int:
-    """Efficiently counts tokens without creating tensors.
-
-    Args:
-        tokenizer (AutoTokenizer): The tokenizer to use.
-        text (str): The text to encode.
-        add_special_tokens (bool, optional): Whether to include special tokens in the count.
-            Defaults to False.
-
-    Returns:
-        int: The number of tokens.
-    """
-    return len(tokenizer.encode(text, add_special_tokens=add_special_tokens))
-
+# ==============================================================================
+# 3. Core Evaluation Logic (DRY)
+# ==============================================================================
 
 def evaluate_choice_likelihood(
     model,
@@ -155,29 +82,9 @@ def evaluate_choice_likelihood(
     choice: str,
     device: torch.device,
     add_space: bool = True,
-) -> Tuple[float, float]:
+) -> Tuple[float, float, int]:
     """Evaluates the log-likelihood of a given text continuation (choice).
-
-    This function is central to multiple-choice evaluation tasks. It computes the
-    negative log-likelihood (NLL) of a `choice` string, given a `context`. This
-    value is used to determine which of several choices the model finds most plausible.
-
-    It returns both the total NLL (sum of losses) and the mean NLL (loss normalized
-    by the number of tokens in the choice), which are used for different accuracy metrics.
-
-    Args:
-        model (CustomLlamaModel): The model instance to evaluate with.
-        tokenizer (AutoTokenizer): The corresponding tokenizer.
-        context (str): The preceding text or question.
-        choice (str): The continuation or answer to be evaluated.
-        device (torch.device): The device to run the computation on.
-        add_space (bool, optional): If True, adds a space between context and choice.
-            Defaults to True.
-
-    Returns:
-        Tuple[float, float]: A tuple containing the total negative log-likelihood
-            and the mean negative log-likelihood. Returns (-inf, -inf) if the
-            choice has zero tokens.
+    Returns (total_ll, token_mean_ll, byte_length).
     """
     full_text = context + (" " if add_space else "") + choice
     
@@ -186,23 +93,178 @@ def evaluate_choice_likelihood(
     input_ids = tensor_inputs['input_ids']
     
     # Get model outputs
-    outputs = model.single_step(tensor_inputs)
-    model.reset_kv_cache()
+    with torch.no_grad():
+        if hasattr(model, "single_step"):
+            logits = model.single_step(tensor_inputs)
+            if hasattr(model, "reset_kv_cache"):
+                model.reset_kv_cache()
+        else:
+            outputs = model(**tensor_inputs)
+            logits = outputs.logits if hasattr(outputs, "logits") else outputs
     
     # Compute loss
-    shift_logits, shift_labels = get_shifted(outputs, input_ids)
+    shift_logits, shift_labels = get_shifted(logits, input_ids)
     loss = per_token_cross_entropy(shift_logits, shift_labels)
     
-    # Get context token count (without special tokens)
+    # Get context token count
     context_tokens_len = count_tokens(tokenizer, context, add_special_tokens=False)
     
-    # Extract continuation loss (loss[k] corresponds to predicting token k+1)
+    # Extract continuation loss
     choice_loss_continuation = loss[context_tokens_len-1:]
     
-    # Return both total and mean negative log-likelihood
     if choice_loss_continuation.numel() > 0:
-        total_nll = -choice_loss_continuation.sum().item()
-        mean_nll = -choice_loss_continuation.mean().item()
-        return total_nll, mean_nll
+        total_ll = -choice_loss_continuation.sum().item()
+        mean_ll = -choice_loss_continuation.mean().item()
+        return total_ll, mean_ll, len(choice.encode("utf-8"))
     else:
-        return float('-inf'), float('-inf')
+        return float('-inf'), float('-inf'), 0
+
+def _generic_mc_eval(
+    model, tokenizer, device, dataset, doc_to_mc_fn: Callable, task_name: str, 
+    add_space: bool = True, use_byte_norm: bool = False
+) -> Tuple[float, float]:
+    """DRY core for multiple-choice evaluation loops."""
+    correct, correct_norm, total = 0, 0, 0
+    
+    for doc in tqdm(dataset, desc=f"Evaluating {task_name}"):
+        context, choices, gold = doc_to_mc_fn(doc)
+        results = [evaluate_choice_likelihood(model, tokenizer, context, c, device, add_space) for c in choices]
+        
+        # total_ll = r[0], token_mean_ll = r[1], byte_len = r[2]
+        lls = [r[0] for r in results]
+        
+        if use_byte_norm:
+            # Normalization by byte length (e.g., HellaSwag style)
+            lls_norm = [r[0] / r[2] if r[2] > 0 else -1e9 for r in results]
+        else:
+            # Normalization by token count (mean NLL)
+            lls_norm = [r[1] for r in results]
+
+        if np.argmax(lls) == gold:
+            correct += 1
+        if np.argmax(lls_norm) == gold:
+            correct_norm += 1
+        total += 1
+
+    acc = correct / total
+    acc_norm = correct_norm / total
+    print(f"{task_name} Accuracy (acc): {acc:.4f} | (acc_norm): {acc_norm:.4f}")
+    return acc, acc_norm
+
+
+# ==============================================================================
+# 4. Task Wrappers
+# ==============================================================================
+
+def evaluate_hellaswag(model, tokenizer, device, max_samples=None):
+    dataset = load_dataset("Rowan/hellaswag", split="validation", trust_remote_code=True)
+    if max_samples:
+        dataset = dataset.select(range(min(max_samples, len(dataset))))
+    
+    def process_doc(doc):
+        # Preprocessing specific to HellaSwag
+        ctx = doc["ctx_a"] + " " + doc["ctx_b"].capitalize()
+        ctx = ctx.replace(" [title]", ". ")
+        ctx = re.sub("\\[.*?\\]", "", ctx).replace("  ", " ").strip()
+        query = f"{doc['activity_label']}: {ctx}"
+        choices = [re.sub("\\[.*?\\]", "", c).replace("  ", " ").strip() for c in doc["endings"]]
+        return query, choices, int(doc["label"])
+    
+    return _generic_mc_eval(model, tokenizer, device, dataset, process_doc, "HellaSwag", use_byte_norm=True)
+
+def evaluate_arc(model, tokenizer, device, variant="Challenge", split="test", max_samples=None):
+    dataset = load_dataset("ai2_arc", f"ARC-{variant}", split=split)
+    if max_samples:
+        dataset = dataset.select(range(min(max_samples, len(dataset))))
+    
+    def process_doc(doc):
+        return doc["question"], doc["choices"]["text"], doc["choices"]["label"].index(doc["answerKey"])
+    
+    return _generic_mc_eval(model, tokenizer, device, dataset, process_doc, f"ARC-{variant}")
+
+def evaluate_obqa(model, tokenizer, device, split="test", max_samples=None):
+    dataset = load_dataset("openbookqa", "main", split=split)
+    if max_samples:
+        dataset = dataset.select(range(min(max_samples, len(dataset))))
+    label_map = {"A": 0, "B": 1, "C": 2, "D": 3}
+    
+    def process_doc(doc):
+        return doc["question_stem"], doc["choices"]["text"], label_map[doc["answerKey"]]
+    
+    return _generic_mc_eval(model, tokenizer, device, dataset, process_doc, "OpenBookQA")
+
+def evaluate_boolq(model, tokenizer, device, split="validation", max_samples=None):
+    dataset = load_dataset("super_glue", "boolq", split=split)
+    if max_samples:
+        dataset = dataset.select(range(min(max_samples, len(dataset))))
+    
+    def process_doc(doc):
+        return doc["passage"] + "\n" + doc["question"] + "?", ["no", "yes"], int(doc["label"])
+        
+    return _generic_mc_eval(model, tokenizer, device, dataset, process_doc, "BoolQ")
+
+def evaluate_piqa(model, tokenizer, device, split="validation", max_samples=None):
+    dataset = load_dataset("gimmaru/piqa", split=split)
+    if max_samples:
+        dataset = dataset.select(range(min(max_samples, len(dataset))))
+        
+    def process_doc(doc):
+        return doc["goal"], [doc["sol1"], doc["sol2"]], int(doc["label"])
+        
+    return _generic_mc_eval(model, tokenizer, device, dataset, process_doc, "PIQA")
+
+def evaluate_winogrande(model, tokenizer, device, split="validation", max_samples=None):
+    dataset = load_dataset("winogrande", "winogrande_xl", split=split)
+    if max_samples:
+        dataset = dataset.select(range(min(max_samples, len(dataset))))
+        
+    def process_doc(doc):
+        # Part before '_' is context
+        return doc["sentence"].split("_")[0], [doc["option1"], doc["option2"]], int(doc["answer"]) - 1
+        
+    return _generic_mc_eval(model, tokenizer, device, dataset, process_doc, "Winogrande", add_space=False)
+
+
+# ==============================================================================
+# 5. Perplexity (PPL)
+# ==============================================================================
+
+def evaluate_ppl(model, tokenizer, device, dataset_name="wikitext", dataset_config="wikitext-2-raw-v1", split="test", limit_tokens=None):
+    dataset = load_dataset(dataset_name, dataset_config, split=split, trust_remote_code=True)
+    text = "\n\n".join(dataset["text"])
+    encodings = tokenizer(text, return_tensors="pt")
+    
+    max_length = 2048
+    stride = 512
+    seq_len = encodings.input_ids.size(1)
+    if limit_tokens: seq_len = min(seq_len, limit_tokens)
+
+    nlls = []
+    prev_end_loc = 0
+    for begin_loc in tqdm(range(0, seq_len, stride), desc="Evaluating PPL"):
+        end_loc = min(begin_loc + max_length, seq_len)
+        trg_len = end_loc - prev_end_loc
+        input_ids = encodings.input_ids[:, begin_loc:end_loc].to(device)
+        target_ids = input_ids.clone()
+        target_ids[:, :-trg_len] = -100
+
+        with torch.no_grad():
+            if hasattr(model, "single_step"):
+                logits = model.single_step({"input_ids": input_ids})
+                sl, sk = get_shifted(logits, input_ids)
+                # Compute loss for all tokens, then mask
+                loss_all = per_token_cross_entropy(sl, sk)
+                shift_target_ids = target_ids[:, 1:]
+                mask = (shift_target_ids != -100)
+                neg_log_likelihood = loss_all[mask.view(-1)].mean()
+            else:
+                outputs = model(input_ids, labels=target_ids)
+                neg_log_likelihood = outputs.loss
+
+        nlls.append(neg_log_likelihood * trg_len)
+        prev_end_loc = end_loc
+        if end_loc == seq_len: break
+
+    ppl = torch.exp(torch.stack(nlls).sum() / end_loc).item()
+    print(f"{dataset_name} PPL: {ppl:.4f}")
+    return ppl

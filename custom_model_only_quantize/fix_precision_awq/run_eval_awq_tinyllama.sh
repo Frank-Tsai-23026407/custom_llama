@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 
 # Define block size pairs as (height width)
 BLOCK_SIZES=(
@@ -19,13 +20,13 @@ BLOCK_SIZES=(
     # "4 16"
     # "2 32"
     # "1 64"
-    # # block size 32
-    # "32 1"
-    # "16 2"
-    # "8 4"
-    # "4 8"
-    # "2 16"
-    # "1 32"
+    # block size 32
+    "32 1"
+    "16 2"
+    "8 4"
+    "4 8"
+    "2 16"
+    "1 32"
 )
 
 # Mantissa bits to try

@@ -69,7 +69,7 @@ def main():
     model_path = resolve_model_path(args.model)
     print("Loading model and tokenizer...")
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    base_model = AutoModelForCausalLM.from_pretrained(model_path).to(device)
+    base_model = AutoModelForCausalLM.from_pretrained(model_path, torch_dtype=torch.bfloat16).to(device)
     tokenizer = AutoTokenizer.from_pretrained(model_path)
     print(f"Block size: {args.block_height}x{args.block_width}")
 

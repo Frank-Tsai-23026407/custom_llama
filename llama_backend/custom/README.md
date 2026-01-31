@@ -3,6 +3,7 @@
 這個目錄開發了一套靈活且可擴展的 Llama 模型實作架構，特別針對研究需求設計，允許開發者輕鬆抽換底層運算邏輯。
 
 ## 架構設計：混合模式 (Hybrid Mode)
+![Hybrid OOP Architecture](../../docs/figure/custom_llama.png)
 
 本架構採用三層設計，在層與層之間建立清晰的邊界，確保計算邏輯、運算後端與模型結構三者的解耦：
 

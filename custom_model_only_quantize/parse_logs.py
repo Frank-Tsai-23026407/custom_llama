@@ -19,8 +19,12 @@ def parse_logs():
         if not os.path.exists(full_path):
             continue
 
-        method = "BFP" if "bfp" in rel_path else "AWQ(Fix)"
-        if "mix" in rel_path: method = "AWQ(Mix)"
+        if "bfp" in rel_path:
+            method = "BFP"
+        elif "mix" in rel_path:
+            method = "AWQ(Mix)"
+        else:
+            method = "AWQ(Fix)"
 
         current_config = None
 

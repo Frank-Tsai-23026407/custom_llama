@@ -23,7 +23,7 @@ from llama_backend.clone.hf_rope import HFRotaryEmbedding
 from llama_backend.clone.clone_backend import clone_decoder_layer, clone_rmsnorm
 from llama_backend.clone.hf_clone import clone_forward_all
 from llama_backend.utils import StopOnTokens, input_formatting
-from quantize_model_script.block_quantization import block_floating_point_quantize
+from custom_model_only_quantize.block_floating_point.block_quantization import block_floating_point_quantize
 
 class CustomLlamaModel(nn.Module):
     """A custom Llama model implementation for flexible backend and precision control."""
@@ -32,12 +32,28 @@ class CustomLlamaModel(nn.Module):
                  precision_policy: "str|PrecisionPolicy|None"=None, backend: str = "custom",
                  rope_cache_dtype: "torch.dtype|None" = None,
                  clone_compute_dtype: "torch.dtype|None" = None,
-                 softmax_fp32: bool = True):
+                 softmax_fp32: bool = True,
+                 quantization_config=None):
         super().__init__()
         self.device = torch.device(device)
         self.dtype = dtype
         self.tokenizer = AutoTokenizer.from_pretrained(model_name)
         self.model = AutoModelForCausalLM.from_pretrained(model_name, torch_dtype=dtype).to(device)
+        
+        # Apply runtime quantization if config is provided
+        if quantization_config:
+            from custom_model_only_quantize.runtime_quantize import apply_runtime_quantization
+            print(f"Applying runtime quantization to CustomLlamaModel base: {quantization_config}")
+            apply_runtime_quantization(
+                self.model,
+                method=quantization_config.method,
+                block_height=quantization_config.block_height,
+                block_width=quantization_config.block_width,
+                mantissa_bits=quantization_config.mantissa_bits,
+                top_k=quantization_config.top_k,
+                activations=quantization_config.activations
+            )
+            
         self.model.eval()
         self.backend = backend
         self.clone_compute_dtype = clone_compute_dtype if clone_compute_dtype is not None else dtype
@@ -64,17 +80,9 @@ class CustomLlamaModel(nn.Module):
         self.attention_blocks = nn.ModuleList()
         for layer_idx in range(self.num_layers):
             layer = self.model.model.layers[layer_idx]
-            if apply_bfp:
-                # Apply BFP quantization to weights
-                layer.input_layernorm.weight.data = block_floating_point_quantize(layer.input_layernorm.weight.data, block_size=bfp_block_size, mantissa_bits=bfp_mantissa_bits)
-                layer.self_attn.q_proj.weight.data = block_floating_point_quantize(layer.self_attn.q_proj.weight.data, block_size=bfp_block_size, mantissa_bits=bfp_mantissa_bits)
-                layer.self_attn.k_proj.weight.data = block_floating_point_quantize(layer.self_attn.k_proj.weight.data, block_size=bfp_block_size, mantissa_bits=bfp_mantissa_bits)
-                layer.self_attn.v_proj.weight.data = block_floating_point_quantize(layer.self_attn.v_proj.weight.data, block_size=bfp_block_size, mantissa_bits=bfp_mantissa_bits)
-                layer.self_attn.o_proj.weight.data = block_floating_point_quantize(layer.self_attn.o_proj.weight.data, block_size=bfp_block_size, mantissa_bits=bfp_mantissa_bits)
-                layer.post_attention_layernorm.weight.data = block_floating_point_quantize(layer.post_attention_layernorm.weight.data, block_size=bfp_block_size, mantissa_bits=bfp_mantissa_bits)
-                layer.mlp.gate_proj.weight.data = block_floating_point_quantize(layer.mlp.gate_proj.weight.data, block_size=bfp_block_size, mantissa_bits=bfp_mantissa_bits)
-                layer.mlp.up_proj.weight.data = block_floating_point_quantize(layer.mlp.up_proj.weight.data, block_size=bfp_block_size, mantissa_bits=bfp_mantissa_bits)
-                layer.mlp.down_proj.weight.data = block_floating_point_quantize(layer.mlp.down_proj.weight.data, block_size=bfp_block_size, mantissa_bits=bfp_mantissa_bits)
+            
+            # Note: If runtime quantization was applied above, these weights are already quantized.
+            # We just need to ensure we grab the data from the layer correctly.
             
             params = {
                 'norm1_weight': layer.input_layernorm.weight.to(device).to(dtype),
@@ -95,10 +103,7 @@ class CustomLlamaModel(nn.Module):
             
         self.stop_criteria = stop_criteria
 
-        if apply_bfp:
-            self.model.model.norm.weight.data = block_floating_point_quantize(self.model.model.norm.weight.data, block_size=bfp_block_size, mantissa_bits=bfp_mantissa_bits)
-            self.model.get_input_embeddings().weight.data = block_floating_point_quantize(self.model.get_input_embeddings().weight.data, block_size=bfp_block_size, mantissa_bits=bfp_mantissa_bits)
-            self.model.get_output_embeddings().weight.data = block_floating_point_quantize(self.model.get_output_embeddings().weight.data, block_size=bfp_block_size, mantissa_bits=bfp_mantissa_bits)
+        # Note: BFP for embeddings/norm also handled by runtime_quantize if applied.
             
     def single_step(self, inputs, return_latents=False):
         """Standard Llama forward pass logic."""

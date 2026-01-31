@@ -52,12 +52,14 @@ class LlamaBackend:
     By subclassing this, you can swap out GEMM, RoPE, or RMSNorm 
     with special research implementations (e.g., custom CUDA kernels).
     """
-    def gemm(self, input: torch.Tensor, weight: torch.Tensor, policy: Optional[PrecisionPolicy] = None) -> torch.Tensor:
+    def gemm(self, input: torch.Tensor, weight: torch.Tensor, transpose_b: bool = True, policy: Optional[PrecisionPolicy] = None) -> torch.Tensor:
         """
         Generic matrix multiplication. 
-        Note: Expected 'weight' shape should be compatible with 'input' for torch.matmul.
-        If using standard Linear weights [out, in], remember to transpose it before passing.
+        Args:
+            transpose_b: If True, transposes the last two dimensions of weight (standard for Linear [out, in]).
         """
+        if transpose_b:
+            weight = weight.transpose(-2, -1)
         return torch.matmul(input, weight)
 
     def rmsnorm(self, x: torch.Tensor, weight: torch.Tensor, eps: float = 1e-5) -> torch.Tensor:
@@ -145,15 +147,19 @@ class LlamaAttention(nn.Module):
         k_final = k_final.repeat_interleave(self.num_heads // self.num_kv_heads, dim=1)
         v_final = v_final.repeat_interleave(self.num_heads // self.num_kv_heads, dim=1)
         
-        # 6. Attention core
-        attn_scores = self.backend.gemm(q.to(mm_dtype), k_final.to(mm_dtype).transpose(-2, -1).contiguous(), policy=policy) / math.sqrt(head_dim)
+        # 6. Attention core: Q @ K^T
+        # q: [B, H, T, D], k_final: [B, H, T_cache, D]
+        # We need q @ k_final.T -> [B, H, T, T_cache]
+        attn_scores = self.backend.gemm(q.to(mm_dtype), k_final.to(mm_dtype), transpose_b=True, policy=policy) / math.sqrt(head_dim)
         
         if seq_len > 1: # Apply causal mask for prompt processing
             mask = torch.triu(torch.ones(seq_len, k_final.size(-2), device=x.device, dtype=torch.bool), diagonal=1+start_pos).unsqueeze(0).unsqueeze(0)
             attn_scores = attn_scores.masked_fill(mask, float('-inf'))
             
         attn_weights = self.backend.softmax(attn_scores, dim=-1, policy=policy).to(mm_dtype)
-        attn_output = self.backend.gemm(attn_weights, v_final.to(mm_dtype), policy=policy)
+        # Weights @ V: [B, H, T, T_cache] @ [B, H, T_cache, D] -> [B, H, T, D]
+        # No transpose needed for V here
+        attn_output = self.backend.gemm(attn_weights, v_final.to(mm_dtype), transpose_b=False, policy=policy)
         
         # 7. Output Projection
         attn_output = attn_output.transpose(1, 2).contiguous().view(batch_size, seq_len, model_dim)

@@ -7,10 +7,10 @@ import json
 from transformers import AutoModelForCausalLM, AutoTokenizer
 from datasets import load_dataset
 from tqdm import tqdm
-import numpy as np
-
 # Add the parent directory to the Python path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
+
+from custom_model_only_quantize.utils.activation_utils import prepare_calibration_data, get_layer_activations, get_multiple_layers_activations
 
 from awq_utils import search_awq_scale, apply_awq_scale, pseudo_quantize
 from testbench import task_utils as TU
@@ -113,56 +113,60 @@ def quantize_model_mixed(model_path, dataset_name, dataset_config, num_samples, 
         device = "cuda" if torch.cuda.is_available() else "cpu"
 
     print("Loading model and tokenizer...")
-    model = AutoModelForCausalLM.from_pretrained(model_path)
+    model = AutoModelForCausalLM.from_pretrained(model_path, torch_dtype=torch.bfloat16).to(device)
     tokenizer = AutoTokenizer.from_pretrained(model_path)
 
-    print(f"Loading and preparing dataset: {dataset_name}...")
-    dataset = load_dataset(dataset_name, dataset_config, split="train").select(range(num_samples))
-    text = "\n\n".join(dataset["text"])
-    tokens = tokenizer(text, return_tensors="pt").input_ids.to(device)
-
-    activations = {}
-    def get_activation(name):
-        def hook(model, input, output):
-            activations[name] = input[0].detach()
-        return hook
-
-    hooks = []
-    for name, module in model.named_modules():
-        if "lm_head" in name or "embed_tokens" in name:
-            continue
-        if isinstance(module, torch.nn.Linear):
-            hooks.append(module.register_forward_hook(get_activation(name)))
-
-    print("Performing forward pass to get activations...")
-    model.to(device)
-    with torch.no_grad():
-        model(tokens)
-
-    for hook in hooks:
-        hook.remove()
-
-    # Identify target layers
-    target_layers = []
-    for name, module in model.named_modules():
-        if "lm_head" in name or "embed_tokens" in name:
-            continue
-        if isinstance(module, torch.nn.Linear):
-            if name in activations:
-                target_layers.append(name)
-    
-    print(f"Target layers for mixed-precision quantization ({len(target_layers)}):")
-    for name in target_layers:
-        print(f"  - {name}")
+    # 1. Prepare packed calibration data (CPU tensors)
+    print("Preparing packed calibration data...")
+    packed_samples = prepare_calibration_data(tokenizer, dataset_name, num_samples=num_samples, seq_len=512)
 
     print("Applying Mixed-Precision AWQ quantization...")
     awq_scales = {}
     quant_metadata = {}
+    target_layers = []
+    # Grouper helper
+    def get_layer_groups(model):
+        groups = {}
+        others = []
+        import re
+        pattern = re.compile(r'\.(layers|h|blocks)\.(\d+)\.')
+        for name, module in model.named_modules():
+            if "lm_head" in name or "embed_tokens" in name:
+                continue
+            if isinstance(module, torch.nn.Linear):
+                match = pattern.search(name)
+                if match:
+                    group_key = name[:match.end()-1]
+                    if group_key not in groups:
+                        groups[group_key] = []
+                    groups[group_key].append(name)
+                else:
+                    others.append(name)
+        return groups, others
 
-    for name, module in tqdm(model.named_modules(), total=len(list(model.named_modules())), desc="Quantizing"):
-        if name in target_layers:
-            X = activations[name]
+    layer_groups, other_layers = get_layer_groups(model)
+    sorted_group_keys = sorted(layer_groups.keys(), key=lambda k: int(k.split('.')[-1]))
+    all_tasks = [layer_groups[k] for k in sorted_group_keys] + [[name] for name in other_layers]
+
+    # Iterate through all modules
+    # Process layer-by-layer
+    for group in tqdm(all_tasks, desc="Quantizing Blocks"):
+        
+        # Get activations for ALL layers in this group at once
+        # Using model (which is being updated in-place for mix-precision as originally written)
+        # Note: In Mix-Precision original code, we iterated model.named_modules() and updated IN PLACE.
+        # So passing 'model' is correct here.
+        group_activations = get_multiple_layers_activations(model, packed_samples, group, device=device)
+        
+        for name in group:
+            if name not in group_activations or group_activations[name] is None:
+                continue
+                
+            X = group_activations[name]
             X = X.view(-1, X.shape[-1])
+            X = X.to(device)
+            
+            module = model.get_submodule(name)
             W = module.weight.data
             
             # 第一步：AWQ Search 並縮放權重
@@ -182,15 +186,18 @@ def quantize_model_mixed(model_path, dataset_name, dataset_config, num_samples, 
             
             # 還原縮放以維持輸出維度
             W_final = W_mixed / s.view(1, -1)
-            module.weight.data = W_final
+            module.weight.data = W_final.to(W.dtype)
             
             # 記錄被保護的通道數量
             protected_channels = mask[0].sum().item()
             quant_metadata[name] = {"protected_channels": protected_channels}
+            target_layers.append(name)
             
-        elif isinstance(module, torch.nn.Linear) and ("lm_head" not in name and "embed_tokens" not in name):
-            # print(f"Skipping layer {name} as no activation was captured.")
-            pass
+            # Free Memory
+            del X, W_scaled, W_mixed, W_final, mask, saliency
+        
+        del group_activations
+        torch.cuda.empty_cache()
 
     if eval_ppl:
         print("\nEvaluating WikiText-103 PPL...")
